@@ -41,6 +41,9 @@
   <!-- Receipt/Summary Card -->
   <div class="receipt-card">
     <div class="receipt-header">
+      {% if settings.get('shop_logo') %}
+        <img src="{{ url_for('static', filename='uploads/' + settings.get('shop_logo')) }}" alt="Logo" style="width:48px;height:48px;border-radius:50%;object-fit:cover;margin:0 auto 10px;display:block;border:1px solid rgba(196,69,105,0.2);" />
+      {% endif %}
       <div class="receipt-shop">{{ settings.get('shop_name','My Shop') }}</div>
       <div class="receipt-order-id">🌸 Sakura Order #{{ order.order_id }}</div>
     </div>

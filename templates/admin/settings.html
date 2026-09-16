@@ -6,7 +6,7 @@
 <div class="form-panel" style="max-width:600px">
   <h2>⚙️ Store Settings</h2>
 
-  <form method="POST" action="{{ url_for('admin_settings') }}">
+  <form method="POST" action="{{ url_for('admin_settings') }}" enctype="multipart/form-data">
     <!-- Shop Info -->
     <div class="form-section">
       <div class="form-section-title">🏪 Shop Information</div>
@@ -15,6 +15,38 @@
         <input type="text" id="shop_name" name="shop_name"
                value="{{ settings.get('shop_name','') }}"
                placeholder="e.g. The Cozy Corner" />
+      </div>
+
+      <!-- Shop Logo Upload -->
+      <div class="a-form-group" style="margin-top:16px">
+        <label>Shop Logo</label>
+        <div style="display:flex;align-items:center;gap:18px;margin-top:8px;flex-wrap:wrap">
+          <!-- Logo Preview Box -->
+          <div id="logoPreviewContainer" style="width:70px;height:70px;border-radius:12px;border:2px dashed var(--a-border-md);background:var(--a-surface2);display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;flex-shrink:0;">
+            {% if settings.get('shop_logo') %}
+              <img id="logoPreviewImg" src="{{ url_for('static', filename='uploads/' + settings.get('shop_logo')) }}" alt="Shop Logo" style="width:100%;height:100%;object-fit:cover;" />
+            {% else %}
+              <div id="logoPreviewDefault" style="font-size:1.8rem;line-height:1">🌸</div>
+              <img id="logoPreviewImg" src="" alt="Shop Logo" style="width:100%;height:100%;object-fit:cover;display:none;" />
+            {% endif %}
+          </div>
+
+          <div style="flex:1;min-width:210px">
+            <input type="file" id="shop_logo" name="shop_logo" accept="image/*" style="font-size:0.82rem;color:var(--a-text);width:100%;" onchange="handleLogoSelect(event)" />
+            <p style="font-size:0.72rem;color:var(--a-text-muted);margin-top:4px">
+              Upload PNG, JPG, or WEBP. Square ratio recommended (e.g. 300x300 px).
+            </p>
+
+            {% if settings.get('shop_logo') %}
+            <div style="margin-top:8px">
+              <label style="font-size:0.78rem;color:var(--a-danger);display:inline-flex;align-items:center;gap:6px;cursor:pointer">
+                <input type="checkbox" name="remove_logo" value="1" id="remove_logo" onchange="handleRemoveLogoToggle(this)" />
+                Remove custom logo (restore default Sakura icon)
+              </label>
+            </div>
+            {% endif %}
+          </div>
+        </div>
       </div>
       <div class="a-form-group">
         <label for="whatsapp_number">WhatsApp Number (with country code)</label>
@@ -341,6 +373,33 @@
     toggleDuration(); // Run on load
   }
 })();
+
+function handleLogoSelect(event) {
+  const file = event.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const img = document.getElementById('logoPreviewImg');
+      const def = document.getElementById('logoPreviewDefault');
+      if (img) {
+        img.src = e.target.result;
+        img.style.display = 'block';
+        img.style.opacity = '1';
+      }
+      if (def) def.style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+    const removeCb = document.getElementById('remove_logo');
+    if (removeCb) removeCb.checked = false;
+  }
+}
+
+function handleRemoveLogoToggle(cb) {
+  const img = document.getElementById('logoPreviewImg');
+  if (img) {
+    img.style.opacity = cb.checked ? '0.2' : '1';
+  }
+}
 
 function confirmClear(type) {
   const messages = {

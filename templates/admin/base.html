@@ -49,7 +49,11 @@
 
     <!-- ── Logo ── -->
     <div class="sidebar-logo">
-      <div class="sidebar-logo-icon">🛍️</div>
+      {% if settings.get('shop_logo') %}
+        <img src="{{ url_for('static', filename='uploads/' + settings.get('shop_logo')) }}" alt="Shop Logo" class="sidebar-logo-img" />
+      {% else %}
+        <div class="sidebar-logo-icon">🛍️</div>
+      {% endif %}
       <div>
         <div class="sidebar-logo-text">{{ settings.get('shop_name', 'Online Shop') }}</div>
         <div class="sidebar-logo-sub">Admin Panel</div>

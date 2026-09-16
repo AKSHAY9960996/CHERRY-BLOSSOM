@@ -121,6 +121,14 @@ input, textarea, select { font-family: var(--font); }
   flex-shrink: 0;
   box-shadow: 0 4px 14px rgba(197, 168, 128, 0.15);
 }
+.sidebar-logo-img {
+  width: 42px; height: 42px;
+  border-radius: var(--r-md);
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1px solid var(--a-border-md);
+  background: var(--a-surface2);
+}
 .sidebar-logo-text { font-family: 'Cormorant Garamond', serif; font-size: 1.25rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--a-text); }
 .sidebar-logo-sub { font-size: 0.58rem; color: var(--a-gold); margin-top: 2px; text-transform: uppercase; letter-spacing: 2px; font-weight: 500; }
 

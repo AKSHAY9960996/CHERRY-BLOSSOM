@@ -17,7 +17,11 @@
 <div class="login-bg">
   <div class="login-card">
     <div class="login-logo">
-      <div class="login-logo-icon">🛍️</div>
+      {% if settings.get('shop_logo') %}
+        <img src="{{ url_for('static', filename='uploads/' + settings.get('shop_logo')) }}" alt="Shop Logo" style="width:58px;height:58px;border-radius:14px;object-fit:cover;margin:0 auto 12px;border:1px solid rgba(255,255,255,0.12);display:block;" />
+      {% else %}
+        <div class="login-logo-icon">🛍️</div>
+      {% endif %}
       <div class="login-title">{{ settings.get('shop_name','My Shop') }}</div>
       <div class="login-subtitle">Sign in to manage your store</div>
     </div>

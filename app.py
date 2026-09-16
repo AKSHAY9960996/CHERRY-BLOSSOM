@@ -119,6 +119,7 @@ def init_db():
         ('reservation_minutes', '15'),  # hold stock for 15 minutes by default
         ('maintenance_mode', '0'),  # '0' = normal, '1' = storefront offline (maintenance mode)
         ('maintenance_message', 'We are currently updating our stock. Kindly visit later!'),
+        ('shop_logo', ''),
     ]
     for key, value in defaults:
         db.execute(
@@ -176,6 +177,25 @@ def save_image(file):
     img = img.convert('RGB')
     img.thumbnail(MAX_IMAGE_SIZE, Image.LANCZOS)
     img.save(filepath, optimize=True, quality=85)
+    return unique_name
+
+def save_logo_image(file):
+    """Save and process uploaded shop logo, preserving RGBA transparency for PNG/WEBP."""
+    if not file or not allowed_file(file.filename):
+        return None
+    ext = file.filename.rsplit('.', 1)[1].lower()
+    unique_name = f"logo_{secrets.token_hex(6)}.{ext}"
+    filepath = os.path.join(UPLOAD_FOLDER, unique_name)
+    img = Image.open(file)
+    # Preserve RGBA transparency for png/webp
+    if ext in ('png', 'webp') and ('A' in img.getbands() or img.mode in ('RGBA', 'LA', 'P')):
+        img = img.convert('RGBA')
+        img.thumbnail((400, 400), Image.LANCZOS)
+        img.save(filepath, optimize=True)
+    else:
+        img = img.convert('RGB')
+        img.thumbnail((400, 400), Image.LANCZOS)
+        img.save(filepath, optimize=True, quality=90)
     return unique_name
 
 # ---------------------------------------------------------------------------
@@ -827,6 +847,33 @@ def admin_settings():
         set_setting('stock_reduction_mode', stock_mode)
         set_setting('reservation_minutes', res_mins)
         set_setting('store_notice', store_notice)
+
+        # Shop Logo Upload & Removal
+        remove_logo = request.form.get('remove_logo') == '1'
+        logo_file = request.files.get('shop_logo')
+
+        if remove_logo:
+            old_logo = get_setting('shop_logo', '')
+            if old_logo:
+                old_path = os.path.join(UPLOAD_FOLDER, old_logo)
+                if os.path.exists(old_path):
+                    try:
+                        os.remove(old_path)
+                    except OSError:
+                        pass
+            set_setting('shop_logo', '')
+        elif logo_file and logo_file.filename:
+            new_logo = save_logo_image(logo_file)
+            if new_logo:
+                old_logo = get_setting('shop_logo', '')
+                if old_logo and old_logo != new_logo:
+                    old_path = os.path.join(UPLOAD_FOLDER, old_logo)
+                    if os.path.exists(old_path):
+                        try:
+                            os.remove(old_path)
+                        except OSError:
+                            pass
+                set_setting('shop_logo', new_logo)
 
         maintenance_mode = '1' if request.form.get('maintenance_mode') else '0'
         maintenance_msg  = request.form.get('maintenance_message', '').strip()

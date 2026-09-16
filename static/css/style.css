@@ -346,6 +346,14 @@ input, textarea, select {
   border: 1px solid rgba(196, 69, 105, 0.16);
 }
 
+.site-custom-logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  display: block;
+}
+
 .site-logo:hover .logo-icon {
   transform: rotate(-12deg) scale(1.08);
   border-color: var(--clr-gold-bright);
