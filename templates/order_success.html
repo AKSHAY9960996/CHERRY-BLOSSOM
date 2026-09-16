@@ -2,50 +2,97 @@
 
 {% block title %}Order Confirmed — {{ settings.get('shop_name','My Shop') }} · 🌸 桜{% endblock %}
 
+{% block head %}
+<style>.sakura-container { display: none !important; }</style>
+{% endblock %}
+
 {% block content %}
+
+<!-- ===== FULL-SCREEN WHATSAPP REDIRECT OVERLAY ===== -->
+<div class="wa-redirect-overlay" id="waRedirectOverlay">
+  <div class="wa-redirect-content">
+    <!-- Animated Countdown Circle -->
+    <div class="countdown-ring-wrap">
+      <svg class="countdown-ring" viewBox="0 0 120 120">
+        <circle class="countdown-ring-bg" cx="60" cy="60" r="52" />
+        <circle class="countdown-ring-progress" id="countdownRing" cx="60" cy="60" r="52" />
+      </svg>
+      <div class="countdown-center">
+        <svg class="wa-icon-big" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+        </svg>
+      </div>
+    </div>
+
+    <h2 class="wa-redirect-title">Sending Order to WhatsApp...</h2>
+    <p class="wa-redirect-desc">
+      Redirecting in <strong id="countdown-timer">5</strong> seconds to confirm your order with our concierge
+    </p>
+
+    <!-- Big WhatsApp CTA button -->
+    <a id="whatsappBtn" href="https://wa.me/{{ order.wa_number }}?text={{ order.wa_message | urlencode }}"
+       class="wa-redirect-btn">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+      </svg>
+      <span>CONFIRM ORDER ON WHATSAPP 🌸</span>
+    </a>
+
+    <!-- Manual fallback (shown if auto-redirect fails) -->
+    <div id="manualFallback" style="display:none; margin-top: 28px;">
+      <p style="font-size:0.82rem; color:var(--clr-text-muted); margin-bottom:14px;">Auto-redirect didn't work? Tap below:</p>
+      <a href="https://wa.me/{{ order.wa_number }}?text={{ order.wa_message | urlencode }}"
+         class="wa-redirect-btn" style="animation:none;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        <span>TAP TO OPEN WHATSAPP 🌸</span>
+      </a>
+      <p style="margin-top:16px;"><a href="{{ url_for('index') }}" style="color:var(--clr-gold); font-size:0.72rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase;">← Return to Store</a></p>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ORDER DETAILS (behind overlay, visible after redirect) ===== -->
 <div class="success-container" id="orderSuccessPage">
   <!-- Celebration Emblem -->
   <div class="success-badge-celebration">
     <div class="success-icon-emblem">
-      <!-- Sakura Flower Icon -->
       <svg width="46" height="46" viewBox="0 0 24 24" fill="currentColor">
         <path d="M12 2c-.8 2.2-2.8 3.5-5 3.5 1.5 1.8 1.5 4.5 0 6.3 2.2 0 4.2 1.3 5 3.5.8-2.2 2.8-3.5 5-3.5-1.5-1.8-1.5-4.5 0-6.3-2.2 0-4.2-1.3-5-3.5zm0 5a2 2 0 1 1 0 4 2 2 0 0 1 0-4z"/>
       </svg>
     </div>
   </div>
 
-  <h1 class="success-main-title">🌸 夢 Order Placed: Confirm with Yumei Concierge</h1>
+  <h1 class="success-main-title">🌸 Order #{{ order.order_id }} Placed Successfully!</h1>
   <p class="success-lead-text">
-    Thank you, <strong>{{ order.customer_name }}</strong>. Your Yumei selection is reserved and currently <strong>pending concierge verification</strong>.
+    Thank you, <strong>{{ order.customer_name }}</strong>. Your order has been placed and sent to our concierge for confirmation.
   </p>
 
-  <!-- Step Tracker for the WhatsApp order pattern -->
+  <!-- Step Tracker -->
   <div class="checkout-steps-tracker">
     <div class="tracker-step completed">
       <span class="step-num">1</span>
       <span class="step-label">Delivery Form</span>
     </div>
     <div class="tracker-line completed"></div>
-    <div class="tracker-step active-pulse">
+    <div class="tracker-step completed">
       <span class="step-num">2</span>
-      <span class="step-label">Confirm via Yumei Concierge</span>
+      <span class="step-label">Order Placed</span>
+    </div>
+    <div class="tracker-line completed"></div>
+    <div class="tracker-step active-pulse">
+      <span class="step-num">3</span>
+      <span class="step-label">Confirm on WhatsApp</span>
     </div>
   </div>
 
-  <!-- Redirection Countdown Notice -->
-  <div class="redirect-notice-card">
-    <div class="redirect-spinner"></div>
-    <p>Connecting to Yumei Concierge on WhatsApp in <strong id="countdown-timer">3</strong> seconds to finalize shipping...</p>
-  </div>
-
-  <!-- Receipt/Summary Card -->
+  <!-- Receipt Card -->
   <div class="receipt-card">
     <div class="receipt-header">
       {% if settings.get('shop_logo') %}
-        <img src="{{ url_for('static', filename='uploads/' + settings.get('shop_logo')) }}" alt="Logo" style="width:48px;height:48px;border-radius:50%;object-fit:cover;margin:0 auto 10px;display:block;border:1px solid rgba(196,69,105,0.2);" />
+        <img src="{{ url_for('static', filename='uploads/' + settings.get('shop_logo')) }}" alt="Logo" style="width:48px;height:48px;border-radius:50%;object-fit:cover;border:1px solid rgba(196,69,105,0.2);" />
       {% endif %}
       <div class="receipt-shop">{{ settings.get('shop_name','My Shop') }}</div>
-      <div class="receipt-order-id">🌸 Yumei Order #{{ order.order_id }}</div>
+      <div class="receipt-order-id">🌸 Order #{{ order.order_id }}</div>
     </div>
     <div class="receipt-divider"></div>
     
@@ -56,20 +103,20 @@
       </div>
       <div class="receipt-meta-item">
         <span class="meta-label">Status</span>
-        <span class="meta-val highlight-gold">Yumei Reserved 🌸</span>
+        <span class="meta-val highlight-gold">Pending Confirmation 🌸</span>
       </div>
     </div>
     
     <div class="receipt-divider"></div>
     
     <div class="receipt-total-section">
-      <div class="receipt-total-label">Subtotal Amount:</div>
+      <div class="receipt-total-label">Total Amount:</div>
       <div class="receipt-total-price">{{ order.currency }}{{ "%.2f"|format(order.total) }}</div>
     </div>
-    <p class="receipt-shipping-note">Note: Express shipping charge will be verified by the Yumei Concierge.</p>
+    <p class="receipt-shipping-note">Note: Shipping charges will be confirmed by our concierge on WhatsApp.</p>
   </div>
 
-  <!-- Call to Action -->
+  <!-- WhatsApp CTA (backup, in case overlay was dismissed) -->
   <div class="whatsapp-cta-block">
     <div class="cta-message-preview">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -78,16 +125,16 @@
         <line x1="12" y1="16" x2="12.01" y2="16"></line>
       </svg>
       <p class="cta-alert-text">
-        <strong>Important:</strong> Press the button below to connect with our Yumei Concierge on WhatsApp and finalize your dispatch.
+        <strong>Didn't redirect?</strong> Press the button below to confirm your order on WhatsApp.
       </p>
     </div>
 
-    <a id="whatsappBtn" href="https://wa.me/{{ order.wa_number }}?text={{ order.wa_message | urlencode }}"
+    <a href="https://wa.me/{{ order.wa_number }}?text={{ order.wa_message | urlencode }}"
        class="btn-whatsapp-glow">
       <svg class="whatsapp-logo-svg" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
       </svg>
-      <span>Connect with Yumei Concierge 🌸</span>
+      <span>Confirm Order on WhatsApp 🌸</span>
     </a>
   </div>
 
@@ -97,28 +144,61 @@
         <line x1="19" y1="12" x2="5" y2="12"></line>
         <polyline points="12 19 5 12 12 5"></polyline>
       </svg>
-      <span>Return to Yumei Atelier 🌸</span>
+      <span>Return to Store 🌸</span>
     </a>
   </div>
 </div>
 
 <script>
   document.addEventListener('DOMContentLoaded', function() {
+    const overlay = document.getElementById('waRedirectOverlay');
     const countdownEl = document.getElementById('countdown-timer');
+    const ring = document.getElementById('countdownRing');
     const waBtn = document.getElementById('whatsappBtn');
-    if (!waBtn) return;
-    
-    let secondsLeft = 3;
+    const skipText = document.getElementById('skipText');
+    if (!waBtn || !ring) return;
+
+    const TOTAL = 5;
+    let secondsLeft = TOTAL;
+    const circumference = 2 * Math.PI * 52; // r=52
+    ring.style.strokeDasharray = circumference;
+    ring.style.strokeDashoffset = 0;
+
     const interval = setInterval(() => {
       secondsLeft--;
-      if (countdownEl) {
-        countdownEl.textContent = secondsLeft;
-      }
+      if (countdownEl) countdownEl.textContent = secondsLeft;
+
+      // Animate ring progress
+      const progress = (TOTAL - secondsLeft) / TOTAL;
+      ring.style.strokeDashoffset = circumference * (1 - progress);
+
       if (secondsLeft <= 0) {
         clearInterval(interval);
+        // Redirect to WhatsApp directly
         window.location.href = waBtn.href;
+
+        // If still on page after 2s (redirect failed), show manual button
+        setTimeout(function() {
+          var fallback = document.getElementById('manualFallback');
+          if (fallback) fallback.style.display = 'block';
+          // Update overlay title
+          var title = document.querySelector('.wa-redirect-title');
+          if (title) title.textContent = 'Tap Below to Confirm Order';
+          var desc = document.querySelector('.wa-redirect-desc');
+          if (desc) desc.textContent = 'Please tap the button to send your order on WhatsApp';
+        }, 2000);
       }
     }, 1000);
+
+    // If user clicks the button manually, dismiss overlay
+    waBtn.addEventListener('click', function(e) {
+      clearInterval(interval);
+      overlay.style.opacity = '0';
+      setTimeout(() => {
+        overlay.style.display = 'none';
+        if (skipText) skipText.style.display = 'block';
+      }, 400);
+    });
   });
 </script>
 {% endblock %}
