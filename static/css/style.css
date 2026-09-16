@@ -2198,8 +2198,22 @@ input, textarea, select {
 }
 
 .footer-logo-icon {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: var(--clr-gold);
-  margin-bottom: 8px;
+}
+
+.footer-logo-icon .site-custom-logo-img {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid rgba(196, 69, 105, 0.2);
+  box-shadow: 0 4px 16px rgba(196, 69, 105, 0.12);
 }
 
 .footer-logo-name {
