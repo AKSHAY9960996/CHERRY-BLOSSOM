@@ -1,0 +1,679 @@
+{% extends "admin/base.html" %}
+{% block title %}Purchase Details{% endblock %}
+{% block page_title %}📊 Purchase Details{% endblock %}
+
+{% block content %}
+
+<!-- ===== PAGE HEADER ===== -->
+<div class="purchases-header">
+  <div class="purchases-header-text">
+    <h2 class="purchases-title">Sales & Purchase History</h2>
+    <p class="purchases-subtitle">Click any product card to view its detailed purchase history and customer data.</p>
+  </div>
+</div>
+
+<!-- ===== SEARCH & FILTER ===== -->
+<div class="admin-search-bar">
+  <form method="GET" action="{{ url_for('admin_purchases') }}" style="display:flex;gap:10px;flex:1;flex-wrap:wrap;align-items:center">
+    <div class="search-input-wrap">
+      <span class="search-icon">🔍</span>
+      <input
+        class="admin-search-input"
+        type="search"
+        name="q"
+        id="purchaseSearch"
+        placeholder="Search products…"
+        value="{{ search }}"
+        autocomplete="off"
+      />
+    </div>
+    <select name="category" class="admin-filter-select" onchange="this.form.submit()">
+      <option value="">All Categories</option>
+      {% for cat in categories %}
+      <option value="{{ cat }}" {% if active_category == cat %}selected{% endif %}>{{ cat }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit" class="topbar-btn primary" style="padding:10px 18px">Search</button>
+    {% if search or active_category %}
+    <a href="{{ url_for('admin_purchases') }}" class="topbar-btn" style="padding:10px 18px">✕ Clear</a>
+    {% endif %}
+  </form>
+</div>
+
+<!-- ===== PRODUCTS GRID ===== -->
+{% if products %}
+<div class="admin-products-grid purchases-grid">
+  {% for product in products %}
+  <div
+    class="admin-product-card purchase-card"
+    onclick="showSalesHistory({{ product.id }}, '{{ product.name|e }}', '{{ product.image or '' }}', '{{ product.category or 'No category' }}', '{{ settings.get('currency_symbol','₹') }}{{ '%.2f'|format(product.price) }}')"
+    role="button"
+    tabindex="0"
+    aria-label="View purchase history for {{ product.name|e }}"
+    onkeydown="if(event.key==='Enter'||event.key===' ')this.click()"
+  >
+    <!-- Product Image -->
+    <div class="admin-product-img">
+      {% if product.image %}
+      <img src="{{ url_for('static', filename='uploads/' + product.image) }}" alt="{{ product.name }}" loading="lazy" />
+      {% else %}
+      <div class="admin-product-img-ph">🛍️</div>
+      {% endif %}
+
+      <!-- Stock badge -->
+      <div style="position:absolute;top:8px;right:8px">
+        {% if product.stock == 0 %}
+        <span class="badge badge-oos">Out of Stock</span>
+        {% elif product.stock <= 2 %}
+        <span class="badge badge-low">Low: {{ product.stock }}</span>
+        {% else %}
+        <span class="badge badge-instock">{{ product.stock }} in stock</span>
+        {% endif %}
+      </div>
+
+      <!-- Hover overlay -->
+      <div class="purchase-card-overlay">
+        <span class="purchase-card-overlay-icon">📊</span>
+        <span class="purchase-card-overlay-text">View Sales History</span>
+      </div>
+    </div>
+
+    <!-- Product Info -->
+    <div class="admin-product-info">
+      <div class="admin-product-name">{{ product.name }}</div>
+      <div class="admin-product-meta">
+        <span class="admin-product-price">
+          {{ settings.get('currency_symbol','₹') }}{{ "%.2f"|format(product.price) }}
+        </span>
+        <span class="purchase-card-category">
+          {% if product.category %}{{ product.category }}{% else %}No category{% endif %}
+        </span>
+      </div>
+    </div>
+
+    <!-- Card Footer -->
+    <div class="admin-product-actions" style="justify-content:center">
+      <button
+        class="action-btn view"
+        style="width:100%;justify-content:center;gap:6px;font-weight:600;pointer-events:none"
+        tabindex="-1"
+      >
+        📊 View Details
+      </button>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<p class="purchases-count">
+  Showing <strong>{{ products|length }}</strong> product{% if products|length != 1 %}s{% endif %}
+  {% if search %} matching "<em>{{ search }}</em>"{% endif %}
+  {% if active_category %} in <em>{{ active_category }}</em>{% endif %}
+</p>
+
+{% else %}
+<!-- Empty State -->
+<div class="purchases-empty">
+  <div class="purchases-empty-icon">📦</div>
+  <h3>No products found</h3>
+  <p>
+    {% if search or active_category %}
+      No products match your current filters.
+      <a href="{{ url_for('admin_purchases') }}" class="purchases-empty-link">Clear filters</a>
+    {% else %}
+      Add products to begin tracking purchase history.
+    {% endif %}
+  </p>
+</div>
+{% endif %}
+
+
+<!-- ===== SALES HISTORY MODAL ===== -->
+<div
+  id="salesModal"
+  class="sales-modal-backdrop"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="salesModalTitle"
+  style="display:none"
+>
+  <div class="sales-modal-box" id="salesModalBox">
+
+    <!-- Modal Header -->
+    <div class="sales-modal-header">
+      <div class="sales-modal-header-left">
+        <div class="sales-modal-icon" id="salesModalIcon">📊</div>
+        <div>
+          <h3 id="salesModalTitle" class="sales-modal-title">Sales History</h3>
+          <p id="salesModalSubtitle" class="sales-modal-subtitle">Loading product details…</p>
+        </div>
+      </div>
+      <button
+        onclick="closeSalesModal()"
+        class="sales-modal-close"
+        aria-label="Close modal"
+        id="salesModalCloseBtn"
+      >&times;</button>
+    </div>
+
+    <!-- Stats Bar (hidden until data loads) -->
+    <div id="salesStatsBar" class="sales-stats-bar" style="display:none">
+      <div class="sales-stat-item">
+        <span class="sales-stat-value" id="statTotalOrders">—</span>
+        <span class="sales-stat-label">Total Orders</span>
+      </div>
+      <div class="sales-stat-divider"></div>
+      <div class="sales-stat-item">
+        <span class="sales-stat-value" id="statTotalQty">—</span>
+        <span class="sales-stat-label">Units Sold</span>
+      </div>
+      <div class="sales-stat-divider"></div>
+      <div class="sales-stat-item">
+        <span class="sales-stat-value" id="statLatestOrder">—</span>
+        <span class="sales-stat-label">Latest Order</span>
+      </div>
+    </div>
+
+    <!-- Modal Body (scrollable) -->
+    <div id="salesModalBody" class="sales-modal-body">
+      <!-- Populated via JS -->
+    </div>
+  </div>
+</div>
+
+
+<!-- ===== STYLES ===== -->
+<style>
+/* Page Header */
+.purchases-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 22px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.purchases-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--a-text);
+  margin: 0 0 4px;
+  letter-spacing: -0.3px;
+}
+.purchases-subtitle {
+  font-size: 0.82rem;
+  color: var(--a-text-muted);
+  margin: 0;
+}
+
+/* Product card enhancements for purchases page */
+.purchases-grid {
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+}
+.purchase-card {
+  cursor: pointer;
+  user-select: none;
+}
+.purchase-card:focus-visible {
+  outline: 2px solid var(--a-primary);
+  outline-offset: 2px;
+}
+
+/* Hover overlay on image */
+.purchase-card-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(26, 95, 200, 0.82);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  opacity: 0;
+  transition: opacity 0.22s ease;
+  backdrop-filter: blur(2px);
+}
+.purchase-card:hover .purchase-card-overlay { opacity: 1; }
+.purchase-card-overlay-icon { font-size: 2rem; }
+.purchase-card-overlay-text {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: white;
+  letter-spacing: 0.3px;
+}
+.purchase-card-category {
+  font-size: 0.72rem;
+  color: var(--a-text-muted);
+  background: var(--a-surface2);
+  padding: 2px 8px;
+  border-radius: 99px;
+}
+
+/* Count line */
+.purchases-count {
+  margin-top: 16px;
+  color: var(--a-text-muted);
+  font-size: 0.82rem;
+}
+.purchases-count strong { color: var(--a-text); }
+.purchases-count em { color: var(--a-info); font-style: normal; }
+
+/* Empty state */
+.purchases-empty {
+  text-align: center;
+  padding: 80px 20px;
+  color: var(--a-text-muted);
+}
+.purchases-empty-icon { font-size: 4rem; margin-bottom: 16px; }
+.purchases-empty h3 { font-size: 1.1rem; font-weight: 700; color: var(--a-text); margin-bottom: 8px; }
+.purchases-empty p { font-size: 0.875rem; line-height: 1.6; }
+.purchases-empty-link { color: var(--a-primary); text-decoration: underline; }
+
+/* ---- MODAL ---- */
+.sales-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(5px);
+  padding: 16px;
+  animation: backdropIn 0.2s ease;
+}
+@keyframes backdropIn { from { opacity: 0; } to { opacity: 1; } }
+
+.sales-modal-box {
+  background: var(--a-surface);
+  border-radius: 20px;
+  max-width: 760px;
+  width: 100%;
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--a-border-md);
+  box-shadow: 0 32px 100px rgba(0,0,0,0.6);
+  animation: modalUp 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  overflow: hidden;
+}
+@keyframes modalUp {
+  from { opacity: 0; transform: translateY(24px) scale(0.97); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Modal Header */
+.sales-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--a-border);
+  background: var(--a-surface2);
+  flex-shrink: 0;
+}
+.sales-modal-header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.sales-modal-icon {
+  width: 44px;
+  height: 44px;
+  background: var(--a-info-lt);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  flex-shrink: 0;
+}
+.sales-modal-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--a-text);
+  margin: 0 0 3px;
+}
+.sales-modal-subtitle {
+  font-size: 0.76rem;
+  color: var(--a-text-muted);
+  margin: 0;
+}
+.sales-modal-close {
+  background: var(--a-surface3);
+  border: 1px solid var(--a-border);
+  color: var(--a-text-muted);
+  font-size: 1.2rem;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.18s ease;
+  flex-shrink: 0;
+  line-height: 1;
+}
+.sales-modal-close:hover { background: var(--a-danger-lt); color: var(--a-danger); border-color: var(--a-danger); }
+
+/* Stats Bar */
+.sales-stats-bar {
+  display: flex;
+  align-items: center;
+  padding: 14px 24px;
+  background: linear-gradient(135deg, var(--a-primary-lt), rgba(26,95,200,0.05));
+  border-bottom: 1px solid var(--a-border);
+  gap: 0;
+  flex-shrink: 0;
+}
+.sales-stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  gap: 3px;
+}
+.sales-stat-value {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--a-info);
+  line-height: 1;
+}
+.sales-stat-label {
+  font-size: 0.65rem;
+  color: var(--a-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  font-weight: 600;
+}
+.sales-stat-divider {
+  width: 1px;
+  height: 32px;
+  background: var(--a-border-md);
+  flex-shrink: 0;
+}
+
+/* Modal Body */
+.sales-modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0;
+}
+.sales-modal-body::-webkit-scrollbar { width: 4px; }
+.sales-modal-body::-webkit-scrollbar-track { background: transparent; }
+.sales-modal-body::-webkit-scrollbar-thumb { background: var(--a-surface3); border-radius: 99px; }
+
+/* Loading state */
+.modal-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  gap: 14px;
+  color: var(--a-text-muted);
+}
+.spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid var(--a-surface3);
+  border-top-color: var(--a-primary);
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.modal-loading p {
+  font-size: 0.875rem;
+  color: var(--a-text-muted);
+  margin: 0;
+}
+
+/* Empty history state */
+.modal-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  gap: 12px;
+  text-align: center;
+}
+.modal-empty-icon { font-size: 3rem; opacity: 0.6; }
+.modal-empty h4 { font-size: 1rem; font-weight: 700; color: var(--a-text); margin: 0; }
+.modal-empty p { font-size: 0.85rem; color: var(--a-text-muted); margin: 0; max-width: 280px; }
+
+/* Sales table */
+.sales-table-wrap {
+  padding: 0;
+}
+.sales-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.855rem;
+}
+.sales-table thead th {
+  padding: 11px 16px;
+  text-align: left;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--a-text-light);
+  background: var(--a-surface2);
+  border-bottom: 1px solid var(--a-border);
+  white-space: nowrap;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+.sales-table tbody td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--a-border);
+  color: var(--a-text);
+  vertical-align: middle;
+}
+.sales-table tbody tr:last-child td { border-bottom: none; }
+.sales-table tbody tr {
+  transition: background 0.14s ease;
+}
+.sales-table tbody tr:hover { background: rgba(255,255,255,0.03); }
+
+.order-id-cell { font-weight: 700; color: var(--a-info); font-size: 0.875rem; }
+.customer-cell { font-weight: 500; }
+.phone-cell { color: var(--a-text-muted); font-size: 0.8rem; font-family: monospace; letter-spacing: 0.5px; }
+.qty-cell { font-weight: 700; }
+.date-cell { color: var(--a-text-muted); font-size: 0.78rem; white-space: nowrap; }
+
+/* Error state */
+.modal-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  gap: 10px;
+  text-align: center;
+}
+.modal-error-icon { font-size: 2.5rem; }
+.modal-error p { color: var(--a-danger); font-size: 0.875rem; margin: 0; }
+
+@media (max-width: 600px) {
+  .sales-modal-box { max-height: 92vh; border-radius: 16px; }
+  .sales-modal-header { padding: 16px; }
+  .sales-stats-bar { padding: 10px 16px; }
+  .sales-table thead th,
+  .sales-table tbody td { padding: 10px 10px; }
+  .purchases-header { margin-bottom: 14px; }
+}
+</style>
+
+
+<!-- ===== JAVASCRIPT ===== -->
+<script>
+const CURRENCY = '{{ settings.get("currency_symbol","₹") }}';
+
+function showSalesHistory(productId, productName, productImage, category, price) {
+  const modal    = document.getElementById('salesModal');
+  const title    = document.getElementById('salesModalTitle');
+  const subtitle = document.getElementById('salesModalSubtitle');
+  const body     = document.getElementById('salesModalBody');
+  const statsBar = document.getElementById('salesStatsBar');
+
+  // Reset stats bar
+  statsBar.style.display = 'none';
+  document.getElementById('statTotalOrders').textContent = '—';
+  document.getElementById('statTotalQty').textContent = '—';
+  document.getElementById('statLatestOrder').textContent = '—';
+
+  // Update header
+  title.textContent = productName;
+  subtitle.textContent = `${category} · ${price}`;
+
+  // Show loading
+  body.innerHTML = `
+    <div class="modal-loading">
+      <div class="spinner"></div>
+      <p>Fetching purchase history…</p>
+    </div>
+  `;
+
+  // Show modal
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+  setTimeout(() => document.getElementById('salesModalCloseBtn').focus(), 100);
+
+  // Fetch data
+  fetch(`/api/admin/products/${productId}/sales`)
+    .then(response => {
+      if (!response.ok) throw new Error('Network response was not ok');
+      return response.json();
+    })
+    .then(data => {
+      if (!data || data.length === 0) {
+        body.innerHTML = `
+          <div class="modal-empty">
+            <div class="modal-empty-icon">🛒</div>
+            <h4>No purchase history yet</h4>
+            <p>This product hasn't been ordered by any customer yet.</p>
+          </div>
+        `;
+        return;
+      }
+
+      // Compute stats
+      const totalOrders = data.length;
+      const totalQty    = data.reduce((sum, s) => sum + (parseInt(s.quantity) || 0), 0);
+      const latestDate  = data[0]?.created_at
+        ? data[0].created_at.split(' ')[0]
+        : '—';
+
+      // Populate stats bar
+      document.getElementById('statTotalOrders').textContent = totalOrders;
+      document.getElementById('statTotalQty').textContent    = totalQty;
+      document.getElementById('statLatestOrder').textContent = latestDate;
+      statsBar.style.display = 'flex';
+
+      // Build table
+      let rows = '';
+      data.forEach(sale => {
+        const statusClass = sale.status ? sale.status.toLowerCase() : 'pending';
+        rows += `
+          <tr>
+            <td class="order-id-cell">#${sale.order_id}</td>
+            <td class="customer-cell">${escapeHtml(sale.customer_name)}</td>
+            <td class="phone-cell">${escapeHtml(sale.phone)}</td>
+            <td class="qty-cell">${sale.quantity}</td>
+            <td><span class="badge badge-${statusClass}">${escapeHtml(sale.status)}</span></td>
+            <td class="date-cell">${escapeHtml(sale.created_at)}</td>
+            <td>
+              <a href="/admin/orders/${sale.order_id}"
+                 class="action-btn view"
+                 style="padding:5px 10px;font-size:0.72rem;white-space:nowrap"
+              >👁 View</a>
+            </td>
+          </tr>
+        `;
+      });
+
+      body.innerHTML = `
+        <div class="sales-table-wrap">
+          <table class="sales-table">
+            <thead>
+              <tr>
+                <th>Order #</th>
+                <th>Customer</th>
+                <th>Phone</th>
+                <th>Qty</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      `;
+    })
+    .catch(() => {
+      body.innerHTML = `
+        <div class="modal-error">
+          <div class="modal-error-icon">⚠️</div>
+          <p>Failed to load purchase history. Please try again.</p>
+        </div>
+      `;
+    });
+}
+
+function closeSalesModal() {
+  const modal = document.getElementById('salesModal');
+  const box   = document.getElementById('salesModalBox');
+  box.style.animation = 'modalDown 0.18s ease forwards';
+  modal.style.animation = 'backdropOut 0.18s ease forwards';
+  setTimeout(() => {
+    modal.style.display = 'none';
+    modal.style.animation = '';
+    box.style.animation = '';
+    document.body.style.overflow = '';
+  }, 170);
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g,  '&amp;')
+    .replace(/</g,  '&lt;')
+    .replace(/>/g,  '&gt;')
+    .replace(/"/g,  '&quot;')
+    .replace(/'/g,  '&#039;');
+}
+
+// Close on backdrop click
+document.getElementById('salesModal').addEventListener('click', function(e) {
+  if (e.target === this) closeSalesModal();
+});
+
+// Close on Escape key
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    const modal = document.getElementById('salesModal');
+    if (modal.style.display === 'flex') closeSalesModal();
+  }
+});
+
+// Extra animations
+const styleEl = document.createElement('style');
+styleEl.textContent = `
+  @keyframes modalDown {
+    from { opacity: 1; transform: none; }
+    to   { opacity: 0; transform: translateY(16px) scale(0.97); }
+  }
+  @keyframes backdropOut {
+    from { opacity: 1; }
+    to   { opacity: 0; }
+  }
+`;
+document.head.appendChild(styleEl);
+</script>
+
+{% endblock %}

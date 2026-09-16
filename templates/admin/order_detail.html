@@ -1,0 +1,134 @@
+{% extends "admin/base.html" %}
+{% block title %}Order #{{ order.id }}{% endblock %}
+{% block page_title %}🧾 Order #{{ order.id }}{% endblock %}
+
+{% block content %}
+<div style="display:flex;gap:8px;margin-bottom:20px;align-items:center">
+  <a href="{{ url_for('admin_orders') }}" class="topbar-btn">← All Orders</a>
+  <span class="badge badge-{{ order.status|lower }}" style="font-size:0.875rem;padding:5px 14px">
+    {{ order.status }}
+  </span>
+</div>
+
+<div class="order-detail-grid">
+  <!-- Left column -->
+  <div>
+    <!-- Items -->
+    <div class="info-card">
+      <h4>🛒 Ordered Items</h4>
+      {% for item in items %}
+      <div style="display:flex;gap:14px;align-items:center;padding:10px 0;border-bottom:1px solid var(--a-border);font-size:0.875rem">
+        {% if item.image %}
+          <img src="{{ url_for('static', filename='uploads/' + item.image) }}"
+               alt="{{ item.product_name }}"
+               style="width:52px;height:52px;object-fit:cover;border-radius:8px;flex-shrink:0" />
+        {% else %}
+          <div style="width:52px;height:52px;background:var(--a-surface2);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0">🛍️</div>
+        {% endif %}
+        <div style="flex:1">
+          <div style="font-weight:600">{{ item.product_name or '(Product deleted)' }}</div>
+          <div style="color:var(--a-text-muted)">{{ settings.get('currency_symbol','₹') }}{{ "%.2f"|format(item.price) }} × {{ item.quantity }}</div>
+        </div>
+        <div style="font-weight:700;color:var(--a-primary)">
+          {{ settings.get('currency_symbol','₹') }}{{ "%.2f"|format(item.price * item.quantity) }}
+        </div>
+      </div>
+      {% endfor %}
+      <div style="display:flex;justify-content:space-between;padding:14px 0 0;font-weight:700;font-size:1rem">
+        <span>Total</span>
+        <span style="color:var(--a-primary)">{{ settings.get('currency_symbol','₹') }}{{ "%.2f"|format(order.total) }}</span>
+      </div>
+    </div>
+
+    <!-- Update Status -->
+    <div class="info-card">
+      <h4>🔄 Update Order Status</h4>
+      <form method="POST" action="{{ url_for('admin_update_order_status', order_id=order.id) }}"
+            style="display:flex;gap:10px;flex-wrap:wrap">
+        <select name="status" class="admin-filter-select" style="flex:1">
+          <option value="Reserved"  {% if order.status=='Reserved' %}selected{% endif %}>⏳ Reserved</option>
+          <option value="Confirmed" {% if order.status=='Confirmed' %}selected{% endif %}>✅ Confirmed</option>
+          <option value="Shipped"   {% if order.status=='Shipped' %}selected{% endif %}>🚚 Shipped</option>
+          <option value="Cancelled" {% if order.status=='Cancelled' %}selected{% endif %}>❌ Cancelled</option>
+          <option value="Expired"   {% if order.status=='Expired' %}selected{% endif %}>🕒 Expired</option>
+        </select>
+        <button type="submit" class="topbar-btn primary">Update Status</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Right column -->
+  <div>
+    <!-- Customer Info -->
+    <div class="info-card">
+      <h4>👤 Customer Details</h4>
+      <div class="info-row">
+        <span class="info-label">Name</span>
+        <span class="info-value">{{ order.customer_name }}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Phone</span>
+        <span class="info-value">{{ order.phone }}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">WhatsApp</span>
+        <span class="info-value">
+          <a href="https://wa.me/91{{ order.whatsapp }}" target="_blank"
+             style="color:var(--a-primary)">{{ order.whatsapp }} 💬</a>
+        </span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Address</span>
+        <span class="info-value" style="text-align:right;max-width:200px">{{ order.address }}</span>
+      </div>
+      {% if order.post_office %}
+      <div class="info-row">
+        <span class="info-label">Post Office (P.O.)</span>
+        <span class="info-value">{{ order.post_office }}</span>
+      </div>
+      {% endif %}
+      {% if order.district %}
+      <div class="info-row">
+        <span class="info-label">District</span>
+        <span class="info-value">{{ order.district }}</span>
+      </div>
+      {% endif %}
+      <div class="info-row">
+        <span class="info-label">Pincode</span>
+        <span class="info-value">{{ order.pincode }}</span>
+      </div>
+      <div style="margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--a-border);">
+        <a href="https://wa.me/{% if order.whatsapp|length == 10 %}91{% endif %}{{ order.whatsapp }}?text={{ ('Hi ' + order.customer_name + ', this is ' + settings.get('shop_name','Our Shop') + '! We received your order #' + (order.id|string) + ' on our website, but haven\'t received your confirmation text. Would you like to confirm your order?') | urlencode }}" 
+           target="_blank" 
+           class="topbar-btn gold" 
+           style="display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; font-weight: 700; border-radius: var(--r-md); padding: 10px 14px;">
+          💬 Contact Customer on WhatsApp
+        </a>
+      </div>
+    </div>
+
+    <!-- Order Meta -->
+    <div class="info-card">
+      <h4>📋 Order Info</h4>
+      <div class="info-row">
+        <span class="info-label">Order ID</span>
+        <span class="info-value">#{{ order.id }}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Date</span>
+        <span class="info-value">{{ order.created_at|to_ist }}</span>
+      </div>
+      {% if order.status == 'Reserved' and order.reserved_until %}
+      <div class="info-row" style="color:var(--a-warning);font-weight:600">
+        <span class="info-label" style="color:var(--a-warning)">Expires At</span>
+        <span class="info-value" style="color:var(--a-warning)">{{ order.reserved_until }} UTC</span>
+      </div>
+      {% endif %}
+      <div class="info-row">
+        <span class="info-label">Status</span>
+        <span class="badge badge-{{ order.status|lower }}">{{ order.status }}</span>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

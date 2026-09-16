@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block title %}🌸 Sakura Checkout — {{ settings.get('shop_name','My Shop') }}{% endblock %}
+{% block description %}Complete your white-glove cherry blossom order at {{ settings.get('shop_name','My Shop') }}.{% endblock %}
+
+{% block content %}
+<div class="checkout-page-wrap">
+  <!-- Breadcrumb -->
+  <nav class="breadcrumb" style="margin-top:24px" aria-label="Breadcrumb">
+    <a href="{{ url_for('index') }}">Home</a>
+    <span class="breadcrumb-sep">›</span>
+    <span class="breadcrumb-current">🌸 Sakura Checkout</span>
+  </nav>
+
+  <h1 class="checkout-main-title">
+    Complete Your Sakura Order 桜
+  </h1>
+
+  <div class="checkout-wrap">
+    <!-- ===== ORDER SUMMARY COLUMN ===== -->
+    <div class="checkout-summary-col">
+      <!-- ===== ORDER SUMMARY CARD ===== -->
+      <div class="order-summary-card">
+        <div class="order-summary-head">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+          </svg>
+          <h3>🌸 Sakura Order Summary</h3>
+        </div>
+        <div class="order-summary-body">
+          <div id="checkoutSummary">
+            <p style="color:var(--clr-text-muted);font-size:0.875rem">Loading selection...</p>
+          </div>
+          <div class="summary-total-row">
+            <span class="summary-total-label">Subtotal</span>
+            <span class="summary-total-value" id="checkoutTotal">{{ settings.get('currency_symbol','₹') }}0.00</span>
+          </div>
+          <p class="summary-security-note">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+            White-Glove Order Confirmation via Sakura Concierge
+          </p>
+        </div>
+      </div>
+
+      <!-- ===== SHIPPING POLICY CARD ===== -->
+      <div class="order-summary-card shipping-policy-card">
+        <div class="shipping-policy-content">
+          <h4 class="shipping-policy-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <rect x="1" y="3" width="15" height="13"></rect>
+              <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
+              <circle cx="5.5" cy="18.5" r="2.5"></circle>
+              <circle cx="18.5" cy="18.5" r="2.5"></circle>
+            </svg>
+            <span>Express Courier Shipping</span>
+          </h4>
+          <ul class="shipping-policy-list">
+            <li><strong>Up to 500g:</strong> {{ settings.get('currency_symbol','₹') }}50</li>
+            <li><strong>500g to 1kg:</strong> {{ settings.get('currency_symbol','₹') }}70</li>
+            <li>Insured delivery via <strong>India Post Express</strong>.</li>
+            <li class="shipping-policy-important">Final weight & shipping charges will be verified with the Sakura Concierge on WhatsApp upon placing order.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== DELIVERY FORM ===== -->
+    <form id="checkoutForm" method="POST" action="{{ url_for('checkout') }}">
+      <div class="form-card">
+        <div class="form-card-title">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          <h2>🌸 White-Glove Delivery Details</h2>
+        </div>
+
+        <div class="checkout-notice-alert">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          <div>
+            <strong>Sakura Atelier Notice:</strong> You may request a high-definition video of your cherry blossom piece on WhatsApp prior to dispatch for complete satisfaction.
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="name">Full Name *</label>
+          <input type="text" id="name" name="name" placeholder="Enter your full name" required autocomplete="name" />
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="phone">Phone Number *</label>
+            <input type="tel" id="phone" name="phone" placeholder="e.g. 9876543210" required autocomplete="tel" />
+          </div>
+          <div class="form-group">
+            <label for="whatsapp">WhatsApp Number *</label>
+            <input type="tel" id="whatsapp" name="whatsapp" placeholder="e.g. 9876543210" required />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="address">Delivery Address *</label>
+          <textarea id="address" name="address" rows="3" placeholder="House/Villa No., Street, Residence, Area, City, State" required
+            autocomplete="street-address"></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="post_office">Post Office (P.O.) *</label>
+            <input type="text" id="post_office" name="post_office" placeholder="e.g. Kakkanad P.O." required />
+          </div>
+          <div class="form-group">
+            <label for="district">District *</label>
+            <input type="text" id="district" name="district" placeholder="e.g. Ernakulam" required />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="pincode">Pincode *</label>
+            <input type="text" id="pincode" name="pincode" placeholder="e.g. 682001" required
+              autocomplete="postal-code" />
+          </div>
+          <div class="form-group">
+            <label for="notes">Special Sakura Instructions</label>
+            <input type="text" id="notes" name="notes" placeholder="Gift packaging notes or specific instructions..." />
+          </div>
+        </div>
+
+        <button type="submit" class="btn-place-order" id="placeOrderBtn">
+          <span>PLACE SAKURA ORDER 🌸</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12 5 19 12 12 19"></polyline>
+          </svg>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

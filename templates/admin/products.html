@@ -1,0 +1,121 @@
+{% extends "admin/base.html" %}
+{% block title %}Products{% endblock %}
+{% block page_title %}📦 Products{% endblock %}
+
+{% block content %}
+<!-- Search & Filter -->
+<div class="admin-search-bar">
+  <form method="GET" action="{{ url_for('admin_products') }}" style="display:flex;gap:10px;flex:1;flex-wrap:wrap">
+    <div class="search-input-wrap">
+      <span class="search-icon">🔍</span>
+      <input class="admin-search-input"
+             type="search" name="q" placeholder="Search products…"
+             value="{{ search }}" autocomplete="off" />
+    </div>
+    <select name="category" class="admin-filter-select" onchange="this.form.submit()">
+      <option value="">All Categories</option>
+      {% for cat in categories %}
+      <option value="{{ cat }}" {% if active_category == cat %}selected{% endif %}>{{ cat }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit" class="topbar-btn primary" style="padding:10px 18px">Search</button>
+    {% if search or active_category %}
+    <a href="{{ url_for('admin_products') }}" class="topbar-btn">✕ Clear</a>
+    {% endif %}
+  </form>
+  <a href="{{ url_for('admin_add_product') }}" class="topbar-btn primary" style="white-space:nowrap">
+    ➕ Add New Product
+  </a>
+</div>
+
+<!-- Products Grid -->
+{% if products %}
+<div class="admin-products-grid">
+  {% for product in products %}
+  <div class="admin-product-card">
+    <div class="admin-product-img">
+      {% if product.image %}
+        <img src="{{ url_for('static', filename='uploads/' + product.image) }}"
+             alt="{{ product.name }}" loading="lazy" />
+      {% else %}
+        <div class="admin-product-img-ph">🛍️</div>
+      {% endif %}
+      <!-- Stock badge overlay -->
+      <div style="position:absolute;top:8px;right:8px">
+        {% if product.stock == 0 %}
+          <span class="badge badge-oos">Out of Stock</span>
+        {% elif product.stock <= 2 %}
+          <span class="badge badge-low">Low: {{ product.stock }}</span>
+        {% else %}
+          <span class="badge badge-instock">{{ product.stock }} in stock</span>
+        {% endif %}
+      </div>
+    </div>
+    <div class="admin-product-info">
+      <div class="admin-product-name">{{ product.name }}</div>
+      <div class="admin-product-meta">
+        <span class="admin-product-price">
+          {{ settings.get('currency_symbol','₹') }}{{ "%.2f"|format(product.price) }}
+        </span>
+        <span style="color:var(--a-text-light);font-size:0.75rem">
+          {% if product.category %}{{ product.category }}{% else %}No category{% endif %}
+        </span>
+      </div>
+    </div>
+    <div class="admin-product-actions">
+      <a href="{{ url_for('admin_edit_product', product_id=product.id) }}"
+         class="action-btn edit">✏️ Edit</a>
+      <button class="action-btn delete" onclick="confirmDelete({{ product.id }}, '{{ product.name|e }}')">
+        🗑️ Delete
+      </button>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<p style="margin-top:16px;color:var(--a-text-muted);font-size:0.82rem">
+  Showing {{ products|length }} product{% if products|length != 1 %}s{% endif %}
+</p>
+
+{% else %}
+<div style="text-align:center;padding:80px 20px;color:var(--a-text-muted)">
+  <div style="font-size:4rem;margin-bottom:16px">📦</div>
+  <h3 style="font-size:1.1rem;font-weight:600;color:var(--a-text);margin-bottom:8px">No products found</h3>
+  <p>{% if search %}Try a different search term.{% else %}Add your first product to get started!{% endif %}</p>
+  <a href="{{ url_for('admin_add_product') }}" class="topbar-btn primary" style="display:inline-flex;margin-top:16px">
+    ➕ Add First Product
+  </a>
+</div>
+{% endif %}
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;align-items:center;justify-content:center">
+  <div style="background:var(--a-surface);border-radius:16px;padding:32px;max-width:380px;width:90%;border:1px solid var(--a-border);box-shadow:0 24px 80px rgba(0,0,0,0.5)">
+    <div style="font-size:2.5rem;text-align:center;margin-bottom:12px">⚠️</div>
+    <h3 style="text-align:center;font-size:1.1rem;margin-bottom:8px">Delete Product?</h3>
+    <p id="deleteModalMsg" style="text-align:center;color:var(--a-text-muted);font-size:0.875rem;margin-bottom:24px"></p>
+    <div style="display:flex;gap:10px">
+      <button onclick="closeDeleteModal()" class="topbar-btn" style="flex:1;justify-content:center;padding:10px">Cancel</button>
+      <form id="deleteForm" method="POST" style="flex:1">
+        <button type="submit" class="action-btn delete" style="width:100%;padding:10px;justify-content:center">
+          🗑️ Delete
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  function confirmDelete(id, name) {
+    const modal = document.getElementById('deleteModal');
+    const msg = document.getElementById('deleteModalMsg');
+    const form = document.getElementById('deleteForm');
+    msg.textContent = `Are you sure you want to delete "${name}"? This cannot be undone.`;
+    form.action = `/admin/products/delete/${id}`;
+    modal.style.display = 'flex';
+  }
+  function closeDeleteModal() {
+    document.getElementById('deleteModal').style.display = 'none';
+  }
+</script>
+{% endblock %}

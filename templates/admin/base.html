@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}Admin{% endblock %} — Admin Panel</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}" />
+  <link rel="manifest" href="{{ url_for('static', filename='admin-manifest.json') }}" />
+  <style>
+    /* ── Sidebar footer: Install App teal hover, Logout red hover ── */
+    .sidebar-footer-install:hover { background: rgba(56,189,248,.12) !important; color: var(--a-info) !important; }
+    .sidebar-footer-logout:hover  { background: var(--a-danger-lt) !important; color: var(--a-danger) !important; }
+
+    /* ── Topbar teal "View Store" button ── */
+    .topbar-btn.teal {
+      background: rgba(56,189,248,.15);
+      color: var(--a-info);
+      border-color: rgba(56,189,248,.25);
+    }
+    .topbar-btn.teal:hover {
+      background: rgba(56,189,248,.25);
+      color: #7dd3fc;
+      border-color: rgba(56,189,248,.4);
+    }
+
+    /* ── Sidebar overlay for mobile ── */
+    .sidebar-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.55);
+      z-index: 299;
+    }
+    .sidebar-overlay.visible { display: block; }
+  </style>
+  {% block head %}{% endblock %}
+</head>
+<body>
+
+<!-- Mobile overlay -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<div class="admin-layout">
+
+  <!-- =======================================================
+       SIDEBAR
+  ======================================================== -->
+  <aside class="admin-sidebar" id="adminSidebar">
+
+    <!-- ── Logo ── -->
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">🛍️</div>
+      <div>
+        <div class="sidebar-logo-text">{{ settings.get('shop_name', 'Online Shop') }}</div>
+        <div class="sidebar-logo-sub">Admin Panel</div>
+      </div>
+    </div>
+
+    <!-- ── Navigation ── -->
+    <nav class="sidebar-nav">
+
+      <!-- MAIN -->
+      <div class="nav-section-label">Main</div>
+      <a href="{{ url_for('admin_dashboard') }}"
+         class="nav-item {% if request.endpoint == 'admin_dashboard' %}active{% endif %}">
+        <span class="nav-icon">🏪</span>
+        Dashboard
+      </a>
+
+      <!-- CATALOG -->
+      <div class="nav-section-label">Catalog</div>
+      <a href="{{ url_for('admin_products') }}"
+         class="nav-item {% if request.endpoint in ['admin_products','admin_edit_product'] %}active{% endif %}">
+        <span class="nav-icon">📦</span>
+        Products
+      </a>
+      <a href="{{ url_for('admin_add_product') }}"
+         class="nav-item {% if request.endpoint == 'admin_add_product' %}active{% endif %}">
+        <span class="nav-icon">➕</span>
+        Add Product
+      </a>
+
+      <!-- SALES -->
+      <div class="nav-section-label">Sales</div>
+      <a href="{{ url_for('admin_orders') }}"
+         class="nav-item {% if request.endpoint in ['admin_orders','admin_order_detail','admin_update_order_status'] %}active{% endif %}">
+        <span class="nav-icon">🧾</span>
+        Orders
+      </a>
+      <a href="{{ url_for('admin_purchases') }}"
+         class="nav-item {% if request.endpoint == 'admin_purchases' %}active{% endif %}">
+        <span class="nav-icon">📋</span>
+        Purchase Details
+      </a>
+
+      <!-- SYSTEM -->
+      <div class="nav-section-label">System</div>
+      <a href="{{ url_for('admin_settings') }}"
+         class="nav-item {% if request.endpoint == 'admin_settings' %}active{% endif %}">
+        <span class="nav-icon">⚙️</span>
+        Settings
+      </a>
+      <a href="{{ url_for('index') }}" target="_blank" rel="noopener"
+         class="nav-item">
+        <span class="nav-icon">🌐</span>
+        View Store
+      </a>
+
+    </nav>
+
+    <!-- ── Footer ── -->
+    <div class="sidebar-footer" style="display:flex;flex-direction:column;gap:2px;">
+      <a id="installAppBtn" class="nav-item sidebar-footer-install"
+         style="cursor:pointer;display:none;">
+        <span class="nav-icon">📲</span>
+        Install App
+      </a>
+      <a href="{{ url_for('admin_logout') }}" class="nav-item sidebar-footer-logout">
+        <span class="nav-icon">🚪</span>
+        Logout
+      </a>
+    </div>
+
+  </aside>
+
+  <!-- =======================================================
+       MAIN AREA
+  ======================================================== -->
+  <div class="admin-main">
+
+    <!-- ── Top Bar ── -->
+    <header class="admin-topbar">
+      <div class="topbar-title">
+        <!-- Hamburger (mobile) -->
+        <button id="sidebarToggle"
+                onclick="toggleSidebar()"
+                style="background:none;border:none;color:var(--a-text-muted);
+                       font-size:1.25rem;padding:4px 8px;border-radius:var(--r-sm);
+                       cursor:pointer;display:none;line-height:1;"
+                aria-label="Toggle menu">☰</button>
+        {% block page_title %}Admin{% endblock %}
+      </div>
+
+      <div class="topbar-actions">
+        {% block topbar_actions %}
+        <a href="{{ url_for('admin_add_product') }}" class="topbar-btn primary">
+          + Add Product
+        </a>
+        <a href="{{ url_for('index') }}" class="topbar-btn teal" target="_blank" rel="noopener">
+          ● View Store
+        </a>
+        {% endblock %}
+      </div>
+    </header>
+
+    <!-- ── Page Content ── -->
+    <main class="admin-content">
+      {% block content %}{% endblock %}
+    </main>
+
+  </div><!-- /.admin-main -->
+
+</div><!-- /.admin-layout -->
+
+<!-- =======================================================
+     FLASH MESSAGES
+======================================================== -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+  <div class="admin-flash-messages" id="flashContainer">
+    {% for category, message in messages %}
+    <div class="admin-flash-msg {{ category }}" onclick="this.remove()">
+      <span>
+        {% if category == 'success' %}✅
+        {% elif category == 'error' %}❌
+        {% elif category == 'warning' %}⚠️
+        {% else %}ℹ️
+        {% endif %}
+      </span>
+      {{ message }}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+{% endwith %}
+
+<!-- =======================================================
+     SCRIPTS
+======================================================== -->
+<script>
+  /* ── Mobile sidebar ─────────────────────────────── */
+  function toggleSidebar() {
+    document.getElementById('adminSidebar').classList.toggle('open');
+    document.getElementById('sidebarOverlay').classList.toggle('visible');
+  }
+  function closeSidebar() {
+    document.getElementById('adminSidebar').classList.remove('open');
+    document.getElementById('sidebarOverlay').classList.remove('visible');
+  }
+
+  /* Show/hide hamburger based on viewport */
+  function checkScreen() {
+    const btn = document.getElementById('sidebarToggle');
+    if (btn) btn.style.display = window.innerWidth <= 768 ? 'inline-flex' : 'none';
+  }
+  checkScreen();
+  window.addEventListener('resize', checkScreen);
+
+  /* ── Auto-dismiss flash messages after 4 s ──────── */
+  setTimeout(function () {
+    const el = document.getElementById('flashContainer');
+    if (el) el.remove();
+  }, 4000);
+
+  /* ── PWA Install App button ─────────────────────── */
+  let deferredInstallPrompt = null;
+  const installBtn = document.getElementById('installAppBtn');
+
+  window.addEventListener('beforeinstallprompt', function (e) {
+    e.preventDefault();
+    deferredInstallPrompt = e;
+    if (installBtn) installBtn.style.display = 'flex';
+  });
+
+  if (installBtn) {
+    installBtn.addEventListener('click', function () {
+      if (!deferredInstallPrompt) return;
+      deferredInstallPrompt.prompt();
+      deferredInstallPrompt.userChoice.then(function () {
+        deferredInstallPrompt = null;
+        installBtn.style.display = 'none';
+      });
+    });
+  }
+
+  window.addEventListener('appinstalled', function () {
+    if (installBtn) installBtn.style.display = 'none';
+    deferredInstallPrompt = null;
+  });
+
+  /* ── Register admin service worker ─────────────── */
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/admin-sw.js', { scope: '/admin' })
+      .catch(function () {});
+  }
+</script>
+
+{% block scripts %}{% endblock %}
+
+</body>
+</html>

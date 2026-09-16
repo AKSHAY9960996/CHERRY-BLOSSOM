@@ -1,0 +1,122 @@
+{% extends "admin/base.html" %}
+{% block title %}{{ action }} Product{% endblock %}
+{% block page_title %}{% if action == 'Edit' %}✏️ Edit Product{% else %}➕ Add Product{% endif %}{% endblock %}
+
+{% block content %}
+<div style="display:flex;gap:8px;align-items:center;margin-bottom:20px">
+  <a href="{{ url_for('admin_products') }}" class="topbar-btn">← Back to Products</a>
+</div>
+
+<div class="form-panel">
+  <h2>{% if action == 'Edit' %}Edit "{{ product.name }}"{% else %}Add New Product{% endif %}</h2>
+
+  <form method="POST" enctype="multipart/form-data"
+        action="{% if action == 'Edit' %}{{ url_for('admin_edit_product', product_id=product.id) }}{% else %}{{ url_for('admin_add_product') }}{% endif %}">
+
+    <!-- Basic Info -->
+    <div class="form-section">
+      <div class="form-section-title">Basic Information</div>
+      <div class="a-form-group">
+        <label for="name">Product Name *</label>
+        <input type="text" id="name" name="name"
+               value="{{ product.name if product else '' }}"
+               placeholder="e.g. Green Cotton T-Shirt"
+               required />
+      </div>
+      <div class="a-form-group">
+        <label for="description">Description</label>
+        <textarea id="description" name="description"
+                  placeholder="Describe the product — material, size, colour, etc.">{{ product.description if product else '' }}</textarea>
+      </div>
+    </div>
+
+    <!-- Pricing & Stock -->
+    <div class="form-section">
+      <div class="form-section-title">Pricing & Inventory</div>
+      <div class="a-form-row">
+        <div class="a-form-group">
+          <label for="price">Price ({{ settings.get('currency_symbol','₹') }}) *</label>
+          <input type="number" id="price" name="price"
+                 value="{{ product.price if product else '' }}"
+                 min="0" step="0.01" placeholder="499.00" required />
+        </div>
+        <div class="a-form-group">
+          <label for="stock">Stock Quantity *</label>
+          <input type="number" id="stock" name="stock"
+                 value="{{ product.stock if product else 0 }}"
+                 min="0" step="1" placeholder="1" required />
+        </div>
+      </div>
+    </div>
+
+    <!-- Category -->
+    <div class="form-section">
+      <div class="form-section-title">Category</div>
+      <div class="a-form-row">
+        <div class="a-form-group">
+          <label for="category">Existing Category</label>
+          <select id="category" name="category">
+            <option value="">-- Select Category --</option>
+            {% for cat in categories %}
+            <option value="{{ cat }}" {% if product and product.category == cat %}selected{% endif %}>{{ cat }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="a-form-group">
+          <label for="new_category">Or Add New Category</label>
+          <input type="text" id="new_category" name="new_category"
+                 placeholder="e.g. Clothing, Shoes, Gifts…" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Image -->
+    <div class="form-section">
+      <div class="form-section-title">Product Image</div>
+      <div class="a-form-group">
+        <label for="image">Upload Image (JPG, PNG, WEBP)</label>
+        {% if product and product.image %}
+        <div style="margin-bottom:12px;border-radius:10px;overflow:hidden;max-width:200px;border:1px solid var(--a-border)">
+          <img src="{{ url_for('static', filename='uploads/' + product.image) }}"
+               alt="Current image" style="width:100%;display:block" />
+        </div>
+        <p style="font-size:0.78rem;color:var(--a-text-muted);margin-bottom:8px">
+          Upload a new image to replace the current one.
+        </p>
+        {% endif %}
+        <div class="img-upload-area {% if product and product.image %}has-img{% endif %}"
+             id="uploadArea"
+             onclick="document.getElementById('image').click()">
+          <div class="img-upload-icon">📷</div>
+          <div class="img-upload-label">Click to upload an image</div>
+          <div style="font-size:0.75rem;color:var(--a-text-light);margin-top:4px">Max 5MB. JPG, PNG, WEBP, GIF</div>
+        </div>
+        <input type="file" id="image" name="image"
+               accept="image/*" style="display:none"
+               onchange="previewImage(this)" />
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;margin-top:8px">
+      <button type="submit" class="topbar-btn primary" style="padding:12px 28px;font-size:0.9rem">
+        {% if action == 'Edit' %}✅ Save Changes{% else %}➕ Add Product{% endif %}
+      </button>
+      <a href="{{ url_for('admin_products') }}" class="topbar-btn">Cancel</a>
+    </div>
+  </form>
+</div>
+
+<script>
+  function previewImage(input) {
+    const area = document.getElementById('uploadArea');
+    if (input.files && input.files[0]) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        area.innerHTML = `<img src="${e.target.result}" class="img-upload-preview" alt="Preview" />`;
+        area.classList.add('has-img');
+      };
+      reader.readAsDataURL(input.files[0]);
+    }
+  }
+</script>
+{% endblock %}

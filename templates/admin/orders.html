@@ -1,0 +1,112 @@
+{% extends "admin/base.html" %}
+{% block title %}Orders{% endblock %}
+{% block page_title %}🧾 Orders{% endblock %}
+
+{% block content %}
+<!-- Search & Filter Bar -->
+<div class="admin-search-bar">
+  <form method="GET" action="{{ url_for('admin_orders') }}" style="display:flex;gap:10px;flex:1;flex-wrap:wrap;align-items:center">
+    <!-- Search Input -->
+    <div class="search-input-wrap" style="flex: 2; min-width: 250px;">
+      <span class="search-icon">🔍</span>
+      <input class="admin-search-input"
+             type="search" name="q" placeholder="Search Order ID, Name, Phone…"
+             value="{{ search_query or '' }}" autocomplete="off" />
+    </div>
+
+    <!-- Status Dropdown -->
+    <select name="status" class="admin-filter-select" style="min-width: 140px;" onchange="this.form.submit()">
+      <option value="" {% if not status_filter %}selected{% endif %}>All Statuses</option>
+      <option value="Pending"   {% if status_filter=='Pending' %}selected{% endif %}>⏳ Pending</option>
+      <option value="Confirmed" {% if status_filter=='Confirmed' %}selected{% endif %}>✅ Confirmed</option>
+      <option value="Shipped"   {% if status_filter=='Shipped' %}selected{% endif %}>🚚 Shipped</option>
+      <option value="Cancelled" {% if status_filter=='Cancelled' %}selected{% endif %}>❌ Cancelled</option>
+    </select>
+
+    <!-- Date Range Dropdown -->
+    <select name="date_filter" id="dateFilterSelect" class="admin-filter-select" onchange="toggleCustomDates()" style="min-width: 140px;">
+      <option value="" {% if not date_filter %}selected{% endif %}>All Dates</option>
+      <option value="today" {% if date_filter=='today' %}selected{% endif %}>📅 Today</option>
+      <option value="yesterday" {% if date_filter=='yesterday' %}selected{% endif %}>📅 Yesterday</option>
+      <option value="week" {% if date_filter=='week' %}selected{% endif %}>📅 This Week</option>
+      <option value="custom" {% if date_filter=='custom' %}selected{% endif %}>📅 Custom Range</option>
+    </select>
+
+    <!-- Custom Date Range Inputs -->
+    <div id="customDatesWrap" style="display: {% if date_filter=='custom' %}flex{% else %}none{% endif %}; gap: 8px; align-items: center;">
+      <input type="date" name="start_date" class="admin-filter-select" value="{{ start_date or '' }}" style="padding: 8px 10px;" />
+      <span style="color:var(--a-text-muted);font-size:0.85rem">to</span>
+      <input type="date" name="end_date" class="admin-filter-select" value="{{ end_date or '' }}" style="padding: 8px 10px;" />
+    </div>
+
+    <!-- Submit and Reset Buttons -->
+    <button type="submit" class="topbar-btn primary" style="padding:10px 18px">Filter</button>
+    {% if search_query or status_filter or date_filter %}
+    <a href="{{ url_for('admin_orders') }}" class="topbar-btn" style="white-space: nowrap;">✕ Clear</a>
+    {% endif %}
+  </form>
+</div>
+
+<script>
+  function toggleCustomDates() {
+    const select = document.getElementById('dateFilterSelect');
+    const customWrap = document.getElementById('customDatesWrap');
+    if (select.value === 'custom') {
+      customWrap.style.display = 'flex';
+    } else {
+      customWrap.style.display = 'none';
+      // Auto-submit if not custom, to make quick-select options feel immediate
+      select.form.submit();
+    }
+  }
+</script>
+
+<div class="table-card">
+  <div class="table-card-header">
+    <h3>All Orders</h3>
+    <span style="color:var(--a-text-muted);font-size:0.82rem">{{ orders|length }} order{% if orders|length != 1 %}s{% endif %}</span>
+  </div>
+
+  {% if orders %}
+  <div class="table-responsive">
+    <table>
+      <thead>
+        <tr>
+          <th>Order ID</th>
+          <th>Customer</th>
+          <th>Phone</th>
+          <th>Amount</th>
+          <th>Status</th>
+          <th>Date</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for order in orders %}
+        <tr>
+          <td><strong>#{{ order.id }}</strong></td>
+          <td>{{ order.customer_name }}</td>
+          <td style="color:var(--a-text-muted);font-size:0.82rem">{{ order.phone }}</td>
+          <td><strong>{{ settings.get('currency_symbol','₹') }}{{ "%.2f"|format(order.total) }}</strong></td>
+          <td>
+            <span class="badge badge-{{ order.status|lower }}">{{ order.status }}</span>
+          </td>
+          <td style="color:var(--a-text-muted);font-size:0.78rem">{{ order.created_at|to_ist }}</td>
+          <td>
+            <a href="{{ url_for('admin_order_detail', order_id=order.id) }}"
+               class="action-btn view">👁 View</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div style="padding:60px;text-align:center;color:var(--a-text-muted)">
+    <div style="font-size:3.5rem;margin-bottom:14px">🧾</div>
+    <h3 style="font-size:1.1rem;font-weight:600;color:var(--a-text);margin-bottom:6px">No orders yet</h3>
+    <p>Orders will appear here once customers start purchasing.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

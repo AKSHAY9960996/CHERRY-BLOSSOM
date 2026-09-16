@@ -1,0 +1,358 @@
+{% extends "admin/base.html" %}
+{% block title %}Settings{% endblock %}
+{% block page_title %}⚙️ Store Settings{% endblock %}
+
+{% block content %}
+<div class="form-panel" style="max-width:600px">
+  <h2>⚙️ Store Settings</h2>
+
+  <form method="POST" action="{{ url_for('admin_settings') }}">
+    <!-- Shop Info -->
+    <div class="form-section">
+      <div class="form-section-title">🏪 Shop Information</div>
+      <div class="a-form-group">
+        <label for="shop_name">Shop Name</label>
+        <input type="text" id="shop_name" name="shop_name"
+               value="{{ settings.get('shop_name','') }}"
+               placeholder="e.g. The Cozy Corner" />
+      </div>
+      <div class="a-form-group">
+        <label for="whatsapp_number">WhatsApp Number (with country code)</label>
+        <input type="text" id="whatsapp_number" name="whatsapp_number"
+               value="{{ settings.get('whatsapp_number','') }}"
+               placeholder="e.g. 919876543210" />
+        <p style="font-size:0.72rem;color:var(--a-text-muted);margin-top:4px">
+          Include country code without + symbol. India = 91 + 10-digit number
+        </p>
+      </div>
+      <div class="a-form-group" style="margin-top:16px">
+        <label for="store_notice">Storefront Announcement / Notice</label>
+        <input type="text" id="store_notice" name="store_notice"
+               value="{{ settings.get('store_notice','') }}"
+               placeholder="e.g. Stock will update tomorrow at 10 AM!" />
+        <p style="font-size:0.72rem;color:var(--a-text-muted);margin-top:4px">
+          Leave blank to disable the announcement bar on the storefront page.
+        </p>
+      </div>
+    </div>
+
+    <!-- Currency -->
+    <div class="form-section">
+      <div class="form-section-title">💰 Currency</div>
+      <div class="a-form-row">
+        <div class="a-form-group">
+          <label for="currency_symbol">Symbol</label>
+          <input type="text" id="currency_symbol" name="currency_symbol"
+                 value="{{ settings.get('currency_symbol','₹') }}"
+                 placeholder="₹" maxlength="5" />
+        </div>
+        <div class="a-form-group">
+          <label for="currency_code">Code</label>
+          <input type="text" id="currency_code" name="currency_code"
+                 value="{{ settings.get('currency_code','INR') }}"
+                 placeholder="INR" maxlength="5" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Out of Stock Visibility & Maintenance -->
+    <div class="form-section">
+      <div class="form-section-title">👁️ Customer Store Visibility &amp; Maintenance</div>
+      
+      <!-- Out of Stock Toggle -->
+      <div class="a-form-group" style="margin-bottom: 24px;">
+        <label style="text-transform:none;letter-spacing:0;font-size:0.875rem;font-weight:500;color:var(--a-text);display:flex;align-items:flex-start;gap:14px;cursor:pointer">
+          <!-- Toggle Switch -->
+          <span style="position:relative;display:inline-block;width:46px;height:26px;flex-shrink:0;margin-top:1px">
+            <input type="checkbox" id="show_out_of_stock" name="show_out_of_stock"
+                   value="1"
+                   {% if settings.get('show_out_of_stock','1') == '1' %}checked{% endif %}
+                   style="opacity:0;width:0;height:0;position:absolute" />
+            <span class="oos-toggle-track" id="oosToggleTrack"></span>
+          </span>
+          <span>
+            <strong id="oosToggleLabel">
+              {% if settings.get('show_out_of_stock','1') == '1' %}
+                Show Out of Stock products on customer page
+              {% else %}
+                Hide Out of Stock products from customer page
+              {% endif %}
+            </strong>
+            <br />
+            <span style="font-size:0.78rem;color:var(--a-text-muted);margin-top:4px;display:block">
+              <span id="oosToggleDesc">
+              {% if settings.get('show_out_of_stock','1') == '1' %}
+                Out-of-stock items are visible with a red "Out of Stock" badge. Customers cannot add them to cart.
+              {% else %}
+                Out-of-stock items are completely hidden. Customers won\'t see them at all.
+              {% endif %}
+              </span>
+            </span>
+          </span>
+        </label>
+      </div>
+
+      <!-- Maintenance Mode Toggle -->
+      <div class="a-form-group" style="border-top: 1px solid var(--a-border); padding-top: 20px;">
+        <label style="text-transform:none;letter-spacing:0;font-size:0.875rem;font-weight:500;color:var(--a-text);display:flex;align-items:flex-start;gap:14px;cursor:pointer">
+          <!-- Toggle Switch -->
+          <span style="position:relative;display:inline-block;width:46px;height:26px;flex-shrink:0;margin-top:1px">
+            <input type="checkbox" id="maintenance_mode" name="maintenance_mode"
+                   value="1"
+                   {% if settings.get('maintenance_mode','0') == '1' %}checked{% endif %}
+                   style="opacity:0;width:0;height:0;position:absolute" />
+            <span class="oos-toggle-track"></span>
+          </span>
+          <span>
+            <strong id="maintenanceToggleLabel">
+              {% if settings.get('maintenance_mode','0') == '1' %}
+                Store Maintenance Mode is ON
+              {% else %}
+                Store Maintenance Mode is OFF
+              {% endif %}
+            </strong>
+            <br />
+            <span style="font-size:0.78rem;color:var(--a-text-muted);margin-top:4px;display:block">
+              <span id="maintenanceToggleDesc">
+              {% if settings.get('maintenance_mode','0') == '1' %}
+                Customers will see a popup notice and cannot buy anything. You can still access the admin panel.
+              {% else %}
+                The storefront is online and customers can browse and make purchases normally.
+              {% endif %}
+              </span>
+            </span>
+          </span>
+        </label>
+      </div>
+
+      <!-- Maintenance Message -->
+      <div class="a-form-group" id="maintenance_message_group" style="margin-top: 20px; border-top: 1px dashed var(--a-border); padding-top: 16px; display: none;">
+        <label for="maintenance_message" style="margin-bottom: 8px;">Custom Maintenance Message</label>
+        <textarea id="maintenance_message" name="maintenance_message" rows="3" placeholder="e.g. Stock updating, kindly visit later.">{{ settings.get('maintenance_message','We are currently updating our stock. Kindly visit later!') }}</textarea>
+        <p style="font-size: 0.72rem; color: var(--a-text-muted); margin-top: 6px; text-transform: none; letter-spacing: 0;">
+          This message will be shown on the customer popup notice when the storefront is in maintenance mode.
+        </p>
+      </div>
+
+    </div>
+
+    <!-- Stock Management Mode -->
+    <div class="form-section">
+      <div class="form-section-title">📦 Stock Reduction Mode</div>
+      <div class="a-form-group">
+        <label for="stock_reduction_mode" style="margin-bottom: 8px;">Inventory Reduction Mode</label>
+        <select id="stock_reduction_mode" name="stock_reduction_mode" class="admin-filter-select" style="width: 100%; background: var(--a-surface); border-color: var(--a-border);">
+          <option value="reserve" {% if settings.get('stock_reduction_mode','reserve') == 'reserve' %}selected{% endif %}>
+            ⏳ 15-Minute Reservation Mode (Automatic Hold &amp; Expire)
+          </option>
+          <option value="manual" {% if settings.get('stock_reduction_mode','reserve') == 'manual' %}selected{% endif %}>
+            ✍️ Manual Mode (Owner updates stock manually after WhatsApp deal)
+          </option>
+        </select>
+        <p style="font-size: 0.75rem; color: var(--a-text-muted); margin-top: 8px; line-height: 1.4; text-transform: none; letter-spacing: 0;">
+          <strong>15-Minute Reservation Mode:</strong> Places a 15-minute temporary hold on stock during customer checkout. Stock is permanently reduced upon confirmation, or restored on cancellation/expiry.<br/>
+          <strong>Manual Mode:</strong> Placing an order does not affect stock levels. You manually subtract stock from products in the catalog after confirming on WhatsApp.
+        </p>
+      <div class="a-form-group" id="reservation_duration_group" style="margin-top: 16px;">
+        <label for="reservation_minutes">Reservation Duration (Minutes)</label>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <input type="number" id="reservation_minutes" name="reservation_minutes"
+                 value="{{ settings.get('reservation_minutes','15') }}"
+                 min="1" max="1440" required
+                 style="background: var(--a-surface); border: 1.5px solid var(--a-border); color: var(--a-text); width: 100px; padding: 8px 12px; border-radius: var(--r-md); outline: none;" />
+          <span style="font-size: 0.82rem; color: var(--a-text-muted);">minutes (e.g. 15, 30, 60)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Admin Credentials -->
+
+    <div class="form-section" style="border:1px solid rgba(239,68,68,0.15)">
+      <div class="form-section-title" style="color:var(--a-danger)">🔐 Admin Credentials</div>
+      <div class="a-form-group">
+        <label for="admin_username">New Username</label>
+        <input type="text" id="admin_username" name="admin_username"
+               placeholder="Leave blank to keep current" autocomplete="username" />
+      </div>
+      <div class="a-form-row">
+        <div class="a-form-group">
+          <label for="admin_password">New Password</label>
+          <input type="password" id="admin_password" name="admin_password"
+                 placeholder="Leave blank to keep current" autocomplete="new-password" />
+        </div>
+        <div class="a-form-group">
+          <label for="confirm_password">Confirm Password</label>
+          <input type="password" id="confirm_password" name="confirm_password"
+                 placeholder="Confirm new password" autocomplete="new-password" />
+        </div>
+      </div>
+      <p style="font-size:0.75rem;color:var(--a-text-muted)">
+        ⚠️ Changing password will log you out immediately.
+      </p>
+    </div>
+
+    <button type="submit" class="topbar-btn primary" style="padding:12px 32px;font-size:0.9rem">
+      💾 Save Settings
+    </button>
+  </form>
+
+  <!-- ===== DANGER ZONE ===== -->
+  <div class="form-section" style="margin-top:32px;border:1.5px solid rgba(239,68,68,0.4);border-radius:var(--r-lg);padding:24px;background:rgba(239,68,68,0.04)">
+    <div class="form-section-title" style="color:var(--a-danger);margin-bottom:4px">🗑️ Danger Zone — Clear Data</div>
+    <p style="font-size:0.8rem;color:var(--a-text-muted);margin-bottom:20px;line-height:1.5">
+      Permanently delete data from the database. <strong style="color:var(--a-danger)">This cannot be undone.</strong><br/>
+      Products and shop settings are not affected.
+    </p>
+
+    <div style="display:flex;flex-direction:column;gap:12px">
+
+      <!-- Clear Orders only -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--a-surface);border-radius:var(--r-md);border:1px solid var(--a-border)">
+        <div>
+          <div style="font-weight:600;font-size:0.875rem">🧾 Clear All Orders</div>
+          <div style="font-size:0.75rem;color:var(--a-text-muted);margin-top:2px">Deletes all orders and order items. Customer records kept.</div>
+        </div>
+        <form method="POST" action="{{ url_for('admin_clear_data') }}" onsubmit="return confirmClear('orders')">
+          <input type="hidden" name="clear_type" value="orders" />
+          <button type="submit" class="topbar-btn" style="background:rgba(239,68,68,0.12);color:var(--a-danger);border:1px solid rgba(239,68,68,0.3);white-space:nowrap">
+            Clear Orders
+          </button>
+        </form>
+      </div>
+
+      <!-- Clear Customers only -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--a-surface);border-radius:var(--r-md);border:1px solid var(--a-border)">
+        <div>
+          <div style="font-weight:600;font-size:0.875rem">👤 Clear All Customers</div>
+          <div style="font-size:0.75rem;color:var(--a-text-muted);margin-top:2px">Deletes all customer records (and their linked orders too).</div>
+        </div>
+        <form method="POST" action="{{ url_for('admin_clear_data') }}" onsubmit="return confirmClear('customers')">
+          <input type="hidden" name="clear_type" value="customers" />
+          <button type="submit" class="topbar-btn" style="background:rgba(239,68,68,0.12);color:var(--a-danger);border:1px solid rgba(239,68,68,0.3);white-space:nowrap">
+            Clear Customers
+          </button>
+        </form>
+      </div>
+
+      <!-- Clear Everything -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:rgba(239,68,68,0.07);border-radius:var(--r-md);border:1.5px solid rgba(239,68,68,0.35)">
+        <div>
+          <div style="font-weight:700;font-size:0.875rem;color:var(--a-danger)">💥 Clear All Data</div>
+          <div style="font-size:0.75rem;color:var(--a-text-muted);margin-top:2px">Deletes ALL orders, order items, and customers. Products are kept.</div>
+        </div>
+        <form method="POST" action="{{ url_for('admin_clear_data') }}" onsubmit="return confirmClear('all')">
+          <input type="hidden" name="clear_type" value="all" />
+          <button type="submit" class="topbar-btn" style="background:var(--a-danger);color:white;border:none;white-space:nowrap;font-weight:700">
+            🗑️ Clear All
+          </button>
+        </form>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<style>
+/* ---- iOS-style toggle switch ---- */
+.oos-toggle-track {
+  position: absolute;
+  inset: 0;
+  border-radius: 99px;
+  background: var(--a-surface3);
+  border: 1.5px solid var(--a-border);
+  transition: background 0.22s, border-color 0.22s;
+  cursor: pointer;
+}
+.oos-toggle-track::after {
+  content: '';
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--a-text-muted);
+  top: 3px;
+  left: 3px;
+  transition: transform 0.22s cubic-bezier(0.4,0,0.2,1), background 0.22s;
+}
+#show_out_of_stock:checked + .oos-toggle-track,
+#maintenance_mode:checked + .oos-toggle-track {
+  background: var(--a-primary);
+  border-color: var(--a-primary);
+}
+#show_out_of_stock:checked + .oos-toggle-track::after,
+#maintenance_mode:checked + .oos-toggle-track::after {
+  transform: translateX(20px);
+  background: white;
+}
+#show_out_of_stock:not(:checked) + .oos-toggle-track::after,
+#maintenance_mode:not(:checked) + .oos-toggle-track::after {
+  background: var(--a-text-light);
+}
+</style>
+<script>
+(function () {
+  const cb    = document.getElementById('show_out_of_stock');
+  const label = document.getElementById('oosToggleLabel');
+  const desc  = document.getElementById('oosToggleDesc');
+
+  function updateText() {
+    if (cb.checked) {
+      label.textContent = 'Show Out of Stock products on customer page';
+      desc.textContent  = 'Out-of-stock items are visible with a red "Out of Stock" badge. Customers cannot add them to cart.';
+    } else {
+      label.textContent = 'Hide Out of Stock products from customer page';
+      desc.textContent  = 'Out-of-stock items are completely hidden. Customers won\'t see them at all.';
+    }
+  }
+  cb.addEventListener('change', updateText);
+
+  // Maintenance Toggle Logic
+  const mCb    = document.getElementById('maintenance_mode');
+  const mLabel = document.getElementById('maintenanceToggleLabel');
+  const mDesc  = document.getElementById('maintenanceToggleDesc');
+  const mGroup = document.getElementById('maintenance_message_group');
+
+  function updateMaintenance() {
+    if (mCb.checked) {
+      mLabel.textContent = 'Store Maintenance Mode is ON';
+      mDesc.textContent  = 'Customers will see a popup notice and cannot buy anything. You can still access the admin panel.';
+      mGroup.style.display = 'block';
+    } else {
+      mLabel.textContent = 'Store Maintenance Mode is OFF';
+      mDesc.textContent  = 'The storefront is online and customers can browse and make purchases normally.';
+      mGroup.style.display = 'none';
+    }
+  }
+  mCb.addEventListener('change', updateMaintenance);
+  updateMaintenance(); // Run on load
+  
+  // Toggle reservation duration input based on selected stock mode
+  const modeSelect = document.getElementById('stock_reduction_mode');
+  const resDurationGroup = document.getElementById('reservation_duration_group');
+  if (modeSelect && resDurationGroup) {
+    const toggleDuration = () => {
+      resDurationGroup.style.display = modeSelect.value === 'reserve' ? 'block' : 'none';
+    };
+    modeSelect.addEventListener('change', toggleDuration);
+    toggleDuration(); // Run on load
+  }
+})();
+
+function confirmClear(type) {
+  const messages = {
+    orders:    'Delete ALL orders and order items?\n\nThis cannot be undone.',
+    customers: 'Delete ALL customers and their orders?\n\nThis cannot be undone.',
+    all:       '⚠️ DELETE ALL ORDERS, ORDER ITEMS, AND CUSTOMERS?\n\nThis cannot be undone. Type CONFIRM to proceed.',
+  };
+  if (type === 'all') {
+    const input = prompt(messages.all);
+    return input === 'CONFIRM';
+  }
+  return confirm(messages[type] || 'Are you sure?');
+}
+</script>
+{% endblock %}

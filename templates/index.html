@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+
+{% block title %}{{ settings.get('shop_name','My Shop') }} — 🌸 桜 Sakura Luxury Atelier{% endblock %}
+{% block description %}Discover handpicked Japanese cherry blossom haute couture and luxury goods at {{ settings.get('shop_name','My Shop') }}. Authentic quality, spring bloom edition.{% endblock %}
+
+{% block content %}
+
+  <!-- ===== HERO SECTION ===== -->
+  <section class="hero-section">
+    <div class="hero-overlay-glow"></div>
+    <div class="hero-content">
+      <div class="hero-badge">🌸 桜 SAKURA BLOOM COLLECTION — SPRING 2026 🌸</div>
+      <h1 class="hero-title">{{ settings.get('shop_name','My Shop') }}</h1>
+      <p class="hero-subtitle">
+        Where Japanese cherry blossom grace meets modern haute couture. Handcrafted silhouettes, delicate rose hues, and timeless elegance — curated for the discerning wardrobe.
+      </p>
+      <div class="hero-divider">
+        <span class="divider-line"></span>
+        <span class="divider-diamond">🌸</span>
+        <span class="divider-line"></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== SHOP SECTION ===== -->
+  <div class="shop-section">
+
+    <!-- Storefront Announcement Notice -->
+    {% if settings.get('store_notice') %}
+    <div class="store-notice-bar" role="alert">
+      <span class="store-notice-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+      </span>
+      <span class="store-notice-text">{{ settings.get('store_notice') }}</span>
+    </div>
+    {% endif %}
+
+    <!-- Category Filter Strip -->
+    {% if categories %}
+    <div class="filter-strip" role="navigation" aria-label="Product categories">
+      <span class="filter-strip-label">🌸 COLLECTION:</span>
+      <a href="{{ url_for('index') }}"
+         class="category-tag {% if not active_category %}active{% endif %}">
+        All Selections
+      </a>
+      {% for cat in categories %}
+      <a href="{{ url_for('index', category=cat, q=search) }}"
+         class="category-tag {% if active_category == cat %}active{% endif %}">
+        {{ cat }}
+      </a>
+      {% endfor %}
+      {% if search or active_category %}
+      <a href="{{ url_for('index') }}" class="category-tag clear-filter">✕ Reset Filter</a>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Section Header -->
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">
+          {% if search %}
+            Results for "{{ search }}"
+          {% elif active_category %}
+            {{ active_category }}
+          {% else %}
+            Featured Sakura Pieces
+          {% endif %}
+        </h2>
+        <div class="section-count">
+          {{ products|length }} {{ 'piece' if products|length == 1 else 'pieces' }} available · 桜
+        </div>
+      </div>
+    </div>
+
+    <!-- Product Grid -->
+    <div class="products-grid" id="productsGrid">
+      {% if products %}
+        {% for product in products %}
+        <article class="product-card {% if product.stock == 0 %}out-of-stock{% endif %}"
+                 id="product-card-{{ product.id }}">
+
+          <!-- Image Wrap -->
+          <div class="product-img-wrap">
+            <!-- Stock Badges -->
+            {% if product.stock == 0 %}
+              <span class="product-badge badge-oos">EXHAUSTED</span>
+            {% elif product.stock <= 2 %}
+              <span class="product-badge badge-low">LIMITED — ONLY {{ product.stock }} LEFT</span>
+            {% endif %}
+
+            {% if product.image %}
+              <img src="{{ url_for('static', filename='uploads/' + product.image) }}"
+                   alt="{{ product.name }}"
+                   loading="lazy" />
+            {% else %}
+              <div class="product-img-placeholder">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2c-.8 2.2-2.8 3.5-5 3.5 1.5 1.8 1.5 4.5 0 6.3 2.2 0 4.2 1.3 5 3.5.8-2.2 2.8-3.5 5-3.5-1.5-1.8-1.5-4.5 0-6.3-2.2 0-4.2-1.3-5-3.5zm0 5a2 2 0 1 1 0 4 2 2 0 0 1 0-4z"/>
+                </svg>
+                <p>SAKURA PIECE 桜</p>
+              </div>
+            {% endif %}
+
+            <!-- Hover overlay -->
+            <div class="product-overlay">
+              <a href="{{ url_for('product_detail', product_id=product.id) }}"
+                 class="overlay-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+                <span>VIEW SAKURA PIECE</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- Info -->
+          <div class="product-info">
+            {% if product.category %}
+            <div class="product-category">🌸 {{ product.category }}</div>
+            {% endif %}
+            <a href="{{ url_for('product_detail', product_id=product.id) }}"
+               class="product-name">{{ product.name }}</a>
+
+            <div class="product-price-row">
+              <span class="product-price">
+                {{ settings.get('currency_symbol','₹') }}{{ "%.2f"|format(product.price) }}
+              </span>
+              <span class="delivery-charge-tag">+ Express Shipping</span>
+            </div>
+
+            {% if product.stock > 0 %}
+              <div class="product-stock {% if product.stock <= 2 %}low{% endif %}">
+                {% if product.stock <= 2 %}
+                  🌸 Only {{ product.stock }} available in Sakura Atelier
+                {% else %}
+                  ✓ In Stock — Sakura Reserved
+                {% endif %}
+              </div>
+            {% else %}
+              <div class="product-stock oos">✕ Exhausted / Out of Stock</div>
+            {% endif %}
+
+            <div class="product-divider"></div>
+
+            <button
+              class="btn-add-cart"
+              id="add-cart-{{ product.id }}"
+              onclick="addToCart({{ product.id }})"
+              {% if product.stock == 0 %}disabled{% endif %}
+              aria-label="Add {{ product.name }} to bag"
+            >
+              {% if product.stock > 0 %}
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                  <line x1="3" y1="6" x2="21" y2="6"></line>
+                  <path d="M16 10a4 4 0 0 1-8 0"></path>
+                </svg>
+                <span>ADD TO SAKURA BAG</span>
+              {% else %}
+                <span>OUT OF STOCK</span>
+              {% endif %}
+            </button>
+          </div>
+        </article>
+        {% endfor %}
+      {% else %}
+        <div class="empty-state">
+          <div class="empty-icon">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </div>
+          <h3>No Sakura Selections Found</h3>
+          <p>Try refining your search query or collection filter.</p>
+        </div>
+      {% endif %}
+    </div>
+
+  </div><!-- /shop-section -->
+
+{% endblock %}
