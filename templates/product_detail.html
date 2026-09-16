@@ -3,6 +3,10 @@
 {% block title %}{{ product.name }} — {{ settings.get('shop_name','My Shop') }} · 🌸 桜{% endblock %}
 {% block description %}{{ product.description or product.name }} — Discover fine Japanese cherry blossom craftsmanship at {{ settings.get('shop_name','My Shop') }}.{% endblock %}
 
+{% block head %}
+<style>.sakura-container { display: none !important; }</style>
+{% endblock %}
+
 {% block content %}
 <div class="product-detail-wrap">
   <!-- Breadcrumb -->
