@@ -61,10 +61,10 @@
         replace('\n', '<br>') | safe }}
       </div>
       {% if settings.get('whatsapp_number') %}
-      <a href="https://wa.me/{{ settings.get('whatsapp_number') }}?text=Hi!%20I%20have%20an%20inquiry%20about%20your%20sakura%20luxury%20atelier."
+      <a href="https://wa.me/{{ settings.get('whatsapp_number') }}?text=Hi!%20I%20have%20an%20inquiry%20about%20your%20Yumei%20luxury%20atelier."
         class="btn-whatsapp" target="_blank" rel="noopener noreferrer">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984 0 1.76.459 3.478 1.33 4.99L2 22l5.133-1.343a9.96 9.6 0 004.877 1.28h.005c5.507 0 9.99-4.479 9.99-9.986 0-2.667-1.037-5.176-2.922-7.062A9.923 9.923 0 0012.012 2z"/></svg>
-        Direct Sakura Concierge
+        Direct Yumei Concierge
       </a>
       {% endif %}
     </div>
@@ -87,7 +87,7 @@
         </div>
         <div class="logo-text">
           <span class="logo-name">{{ settings.get('shop_name','My Shop') }}</span>
-          <span class="logo-tagline">🌸 SAKURA ATELIER · 桜の美</span>
+          <span class="logo-tagline">🌸 YUMEI ATELIER · 夢の美</span>
         </div>
       </a>
 
@@ -100,7 +100,7 @@
                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
               </svg>
             </span>
-            <input type="search" name="q" id="searchInput" placeholder="Search sakura collection..."
+            <input type="search" name="q" id="searchInput" placeholder="Search Yumei collection..."
               value="{{ request.args.get('q','') }}" autocomplete="off" />
           </div>
         </form>
@@ -130,7 +130,7 @@
           <line x1="3" y1="6" x2="21" y2="6"></line>
           <path d="M16 10a4 4 0 0 1-8 0"></path>
         </svg>
-        <h2>SAKURA BAG 桜</h2>
+        <h2>YUMEI BAG 🌸</h2>
       </div>
       <button class="cart-close-btn" id="cartCloseBtn" aria-label="Close cart">✕</button>
     </div>
@@ -144,8 +144,8 @@
             <path d="M16 10a4 4 0 0 1-8 0"></path>
           </svg>
         </div>
-        <h3>Your Sakura Bag is Empty</h3>
-        <p class="empty-cart-desc">Discover our handpicked Cherry Blossom creations 桜.</p>
+        <h3>Your Yumei Bag is Empty</h3>
+        <p class="empty-cart-desc">Discover our handpicked Yumei creations 🌸.</p>
       </div>
       <div id="cartItemsContainer"></div>
     </div>
@@ -156,7 +156,7 @@
         <span class="cart-total-amount" id="cartTotalAmount">₹0.00</span>
       </div>
       <a href="{{ url_for('checkout') }}" class="btn-checkout">
-        <span>PROCEED TO SAKURA CHECKOUT</span>
+        <span>PROCEED TO YUMEI CHECKOUT</span>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <line x1="5" y1="12" x2="19" y2="12"></line>
           <polyline points="12 5 19 12 12 19"></polyline>
@@ -167,7 +167,7 @@
           <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
           <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
         </svg>
-        Sakura Concierge Verification via WhatsApp
+        Yumei Concierge Verification via WhatsApp
       </div>
     </div>
   </aside>
@@ -211,12 +211,12 @@
           {% endif %}
         </div>
         <span class="footer-logo-name">{{ settings.get('shop_name','My Shop') }}</span>
-        <span class="footer-tagline">🌸 JAPANESE SAKURA ATELIER · 桜の美 · FINE SELECTIONS</span>
+        <span class="footer-tagline">🌸 YUMEI ATELIER · 夢の美 · FINE SELECTIONS</span>
       </div>
       <div class="footer-divider"></div>
       <div class="footer-bottom">
         <p class="footer-copy">
-          © 2026 {{ settings.get('shop_name','My Shop') }}. All Rights Reserved. Crafted with Japanese Sakura Elegance 桜.
+          © 2026 {{ settings.get('shop_name','My Shop') }}. All Rights Reserved. Crafted with Yumei Elegance 🌸.
         </p>
       </div>
     </div>
@@ -236,12 +236,12 @@
   <div id="founderAdBanner" class="founder-ad-banner" style="display: none;">
     <button class="founder-ad-close" id="closeFounderAd" aria-label="Close concierge banner">✕</button>
     <div class="founder-ad-content">
-      <div class="founder-ad-badge">🌸 SAKURA CONCIERGE</div>
+      <div class="founder-ad-badge">🌸 YUMEI CONCIERGE</div>
       <div class="founder-ad-text">
-        <p class="founder-ad-title">Desire a custom Sakura storefront?</p>
+        <p class="founder-ad-title">Desire a custom Yumei storefront?</p>
         <p class="founder-ad-desc">Launch your Japanese-inspired luxury experience with our atelier platform.</p>
       </div>
-      <a href="https://wa.me/917559960995?text=Hi!%20I%20saw%20your%20sakura%20luxury%20online%20shop%20and%20would%20like%20to%20create%20one%20for%20my%20business."
+      <a href="https://wa.me/917559960995?text=Hi!%20I%20saw%20your%20Yumei%20luxury%20online%20shop%20and%20would%20like%20to%20create%20one%20for%20my%20business."
         target="_blank" class="founder-ad-btn">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984 0 1.76.459 3.478 1.33 4.99L2 22l5.133-1.343a9.96 9.6 0 004.877 1.28h.005c5.507 0 9.99-4.479 9.99-9.986 0-2.667-1.037-5.176-2.922-7.062A9.923 9.923 0 0012.012 2z"/></svg>
         <span>Connect Concierge</span>

@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
-{% block title %}🌸 Sakura Checkout — {{ settings.get('shop_name','My Shop') }}{% endblock %}
-{% block description %}Complete your white-glove cherry blossom order at {{ settings.get('shop_name','My Shop') }}.{% endblock %}
+{% block title %}🌸 Yumei Checkout — {{ settings.get('shop_name','My Shop') }}{% endblock %}
+{% block description %}Complete your white-glove order at {{ settings.get('shop_name','My Shop') }}.{% endblock %}
 
 {% block content %}
 <div class="checkout-page-wrap">
@@ -9,11 +9,11 @@
   <nav class="breadcrumb" style="margin-top:24px" aria-label="Breadcrumb">
     <a href="{{ url_for('index') }}">Home</a>
     <span class="breadcrumb-sep">›</span>
-    <span class="breadcrumb-current">🌸 Sakura Checkout</span>
+    <span class="breadcrumb-current">🌸 Yumei Checkout</span>
   </nav>
 
   <h1 class="checkout-main-title">
-    Complete Your Sakura Order 桜
+    Complete Your Yumei Order 🌸
   </h1>
 
   <div class="checkout-wrap">
@@ -29,7 +29,7 @@
             <line x1="16" y1="17" x2="8" y2="17"></line>
             <polyline points="10 9 9 9 8 9"></polyline>
           </svg>
-          <h3>🌸 Sakura Order Summary</h3>
+          <h3>🌸 Yumei Order Summary</h3>
         </div>
         <div class="order-summary-body">
           <div id="checkoutSummary">
@@ -44,7 +44,7 @@
               <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
               <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
             </svg>
-            White-Glove Order Confirmation via Sakura Concierge
+            White-Glove Order Confirmation via Yumei Concierge
           </p>
         </div>
       </div>
@@ -65,7 +65,7 @@
             <li><strong>Up to 500g:</strong> {{ settings.get('currency_symbol','₹') }}50</li>
             <li><strong>500g to 1kg:</strong> {{ settings.get('currency_symbol','₹') }}70</li>
             <li>Insured delivery via <strong>India Post Express</strong>.</li>
-            <li class="shipping-policy-important">Final weight & shipping charges will be verified with the Sakura Concierge on WhatsApp upon placing order.</li>
+            <li class="shipping-policy-important">Final weight & shipping charges will be verified with the Yumei Concierge on WhatsApp upon placing order.</li>
           </ul>
         </div>
       </div>
@@ -89,7 +89,7 @@
             <line x1="12" y1="16" x2="12.01" y2="16"></line>
           </svg>
           <div>
-            <strong>Sakura Atelier Notice:</strong> You may request a high-definition video of your cherry blossom piece on WhatsApp prior to dispatch for complete satisfaction.
+            <strong>Yumei Atelier Notice:</strong> You may request a high-definition video of your piece on WhatsApp prior to dispatch for complete satisfaction.
           </div>
         </div>
 
@@ -133,13 +133,13 @@
               autocomplete="postal-code" />
           </div>
           <div class="form-group">
-            <label for="notes">Special Sakura Instructions</label>
+            <label for="notes">Special Yumei Instructions</label>
             <input type="text" id="notes" name="notes" placeholder="Gift packaging notes or specific instructions..." />
           </div>
         </div>
 
         <button type="submit" class="btn-place-order" id="placeOrderBtn">
-          <span>PLACE SAKURA ORDER 🌸</span>
+          <span>PLACE YUMEI ORDER 🌸</span>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="5" y1="12" x2="19" y2="12"></line>
             <polyline points="12 5 19 12 12 19"></polyline>

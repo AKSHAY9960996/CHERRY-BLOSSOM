@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ settings.get('shop_name','My Shop') }} — 🌸 桜 Sakura Luxury Atelier{% endblock %}
+{% block title %}{{ settings.get('shop_name','My Shop') }} — 🌸 夢 Yumei Luxury Atelier{% endblock %}
 {% block description %}Discover handpicked Japanese cherry blossom haute couture and luxury goods at {{ settings.get('shop_name','My Shop') }}. Authentic quality, spring bloom edition.{% endblock %}
 
 {% block content %}
@@ -9,10 +9,10 @@
   <section class="hero-section">
     <div class="hero-overlay-glow"></div>
     <div class="hero-content">
-      <div class="hero-badge">🌸 桜 SAKURA BLOOM COLLECTION — SPRING 2026 🌸</div>
+      <div class="hero-badge">🌸 夢 YUMEI BLOOM COLLECTION — SPRING 2026 🌸</div>
       <h1 class="hero-title">{{ settings.get('shop_name','My Shop') }}</h1>
       <p class="hero-subtitle">
-        Where Japanese cherry blossom grace meets modern haute couture. Handcrafted silhouettes, delicate rose hues, and timeless elegance — curated for the discerning wardrobe.
+        Where Yumei grace meets modern haute couture. Handcrafted silhouettes, delicate rose hues, and timeless elegance — curated for the discerning wardrobe.
       </p>
       <div class="hero-divider">
         <span class="divider-line"></span>
@@ -68,11 +68,11 @@
           {% elif active_category %}
             {{ active_category }}
           {% else %}
-            Featured Sakura Pieces
+            Featured Yumei Pieces
           {% endif %}
         </h2>
         <div class="section-count">
-          {{ products|length }} {{ 'piece' if products|length == 1 else 'pieces' }} available · 桜
+          {{ products|length }} {{ 'piece' if products|length == 1 else 'pieces' }} available · 🌸
         </div>
       </div>
     </div>
@@ -102,7 +102,7 @@
                 <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M12 2c-.8 2.2-2.8 3.5-5 3.5 1.5 1.8 1.5 4.5 0 6.3 2.2 0 4.2 1.3 5 3.5.8-2.2 2.8-3.5 5-3.5-1.5-1.8-1.5-4.5 0-6.3-2.2 0-4.2-1.3-5-3.5zm0 5a2 2 0 1 1 0 4 2 2 0 0 1 0-4z"/>
                 </svg>
-                <p>SAKURA PIECE 桜</p>
+                <p>YUMEI PIECE 🌸</p>
               </div>
             {% endif %}
 
@@ -110,11 +110,11 @@
             <div class="product-overlay">
               <a href="{{ url_for('product_detail', product_id=product.id) }}"
                  class="overlay-btn">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                   <circle cx="12" cy="12" r="3"></circle>
                 </svg>
-                <span>VIEW SAKURA PIECE</span>
+                <span>VIEW YUMEI PIECE</span>
               </a>
             </div>
           </div>
@@ -137,9 +137,9 @@
             {% if product.stock > 0 %}
               <div class="product-stock {% if product.stock <= 2 %}low{% endif %}">
                 {% if product.stock <= 2 %}
-                  🌸 Only {{ product.stock }} available in Sakura Atelier
+                  🌸 Only {{ product.stock }} available in Yumei Atelier
                 {% else %}
-                  ✓ In Stock — Sakura Reserved
+                  ✓ In Stock — Yumei Reserved
                 {% endif %}
               </div>
             {% else %}
@@ -161,7 +161,7 @@
                   <line x1="3" y1="6" x2="21" y2="6"></line>
                   <path d="M16 10a4 4 0 0 1-8 0"></path>
                 </svg>
-                <span>ADD TO SAKURA BAG</span>
+                <span>ADD TO YUMEI BAG</span>
               {% else %}
                 <span>OUT OF STOCK</span>
               {% endif %}
@@ -177,7 +177,7 @@
               <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             </svg>
           </div>
-          <h3>No Sakura Selections Found</h3>
+          <h3>No Yumei Selections Found</h3>
           <p>Try refining your search query or collection filter.</p>
         </div>
       {% endif %}
