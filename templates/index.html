@@ -96,7 +96,17 @@
             {% if product.image %}
               <img src="{{ url_for('static', filename='uploads/' + product.image) }}"
                    alt="{{ product.name }}"
+                   class="product-primary-img"
                    loading="lazy" />
+              {% if product.image2 %}
+              <img src="{{ url_for('static', filename='uploads/' + product.image2) }}"
+                   alt="{{ product.name }} detail view"
+                   class="product-hover-img"
+                   loading="lazy" />
+              <div class="product-pic-count-badge">
+                <span>📸 2 Photos</span>
+              </div>
+              {% endif %}
             {% else %}
               <div class="product-img-placeholder">
                 <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor">

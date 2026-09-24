@@ -112,6 +112,26 @@
 
     </nav>
 
+    <!-- ── Storage Balance Widget ── -->
+    {% if storage_stats %}
+    <div class="sidebar-storage-box">
+      <div class="storage-box-head">
+        <span class="storage-box-title">💾 Balance Space</span>
+        <span class="storage-box-val {% if storage_stats.status != 'healthy' %}warn{% endif %}">
+          {{ storage_stats.free_human }} free
+        </span>
+      </div>
+      <div class="storage-bar-track" title="{{ storage_stats.used_pct }}% used">
+        <div class="storage-bar-fill {% if storage_stats.status == 'critical' %}crit{% elif storage_stats.status == 'warning' %}warn{% endif %}"
+             style="width: {{ storage_stats.used_pct }}%;"></div>
+      </div>
+      <div class="storage-box-sub">
+        <span>Media: {{ storage_stats.uploads_human }}</span>
+        <span>Drive: {{ storage_stats.total_human }}</span>
+      </div>
+    </div>
+    {% endif %}
+
     <!-- ── Footer ── -->
     <div class="sidebar-footer" style="display:flex;flex-direction:column;gap:2px;">
       <a id="installAppBtn" class="nav-item sidebar-footer-install"

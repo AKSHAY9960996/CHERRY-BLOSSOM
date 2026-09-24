@@ -228,6 +228,57 @@
     </button>
   </form>
 
+  <!-- ===== SYSTEM STORAGE & BALANCE SPACE ===== -->
+  {% if storage_stats %}
+  <div class="form-section" style="margin-top:32px;border:1px solid var(--a-border-md);border-radius:var(--r-lg);padding:24px;background:var(--a-surface2)">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <div class="form-section-title" style="margin-bottom:0;">💾 System Storage &amp; Balance Space</div>
+      <span class="badge {% if storage_stats.status == 'healthy' %}badge-instock{% else %}badge-oos{% endif %}">
+        {% if storage_stats.status == 'healthy' %}● Optimal Storage{% else %}⚠️ Storage Low{% endif %}
+      </span>
+    </div>
+    <p style="font-size:0.8rem;color:var(--a-text-muted);margin-bottom:16px;">
+      Live server drive quota and image upload footprint. Product images are automatically compressed and resized to 800×800 px to conserve balance space.
+    </p>
+
+    <!-- Storage Progress -->
+    <div style="margin-bottom:18px;">
+      <div style="display:flex;justify-content:space-between;font-size:0.85rem;margin-bottom:8px;">
+        <span style="font-weight:700;color:var(--a-gold)">Balance Space: {{ storage_stats.free_human }} Free</span>
+        <span style="color:var(--a-text-muted)">{{ storage_stats.used_pct }}% used of {{ storage_stats.total_human }}</span>
+      </div>
+      <div class="storage-bar-track" style="height:10px;background:var(--a-surface3);border-radius:99px;overflow:hidden;border:1px solid var(--a-border)">
+        <div class="storage-bar-fill {% if storage_stats.status != 'healthy' %}warn{% endif %}"
+             style="height:100%;width:{{ storage_stats.used_pct }}%;background:linear-gradient(90deg, var(--a-primary), var(--a-gold));border-radius:99px;"></div>
+      </div>
+    </div>
+
+    <!-- Storage Breakdown Grid -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(140px, 1fr));gap:12px;">
+      <div style="background:var(--a-surface);padding:14px;border-radius:var(--r-md);border:1px solid var(--a-border)">
+        <div style="font-size:0.7rem;color:var(--a-text-muted);text-transform:uppercase;font-weight:700">Remaining Space</div>
+        <div style="font-size:1.15rem;font-weight:800;color:var(--a-success);margin-top:4px">{{ storage_stats.free_human }}</div>
+        <div style="font-size:0.72rem;color:var(--a-text-light);margin-top:2px">{{ storage_stats.free_pct }}% available</div>
+      </div>
+      <div style="background:var(--a-surface);padding:14px;border-radius:var(--r-md);border:1px solid var(--a-border)">
+        <div style="font-size:0.7rem;color:var(--a-text-muted);text-transform:uppercase;font-weight:700">Media Uploads</div>
+        <div style="font-size:1.15rem;font-weight:800;color:var(--a-primary);margin-top:4px">{{ storage_stats.uploads_human }}</div>
+        <div style="font-size:0.72rem;color:var(--a-text-light);margin-top:2px">{{ storage_stats.uploads_count }} files in /uploads</div>
+      </div>
+      <div style="background:var(--a-surface);padding:14px;border-radius:var(--r-md);border:1px solid var(--a-border)">
+        <div style="font-size:0.7rem;color:var(--a-text-muted);text-transform:uppercase;font-weight:700">Database</div>
+        <div style="font-size:1.15rem;font-weight:800;color:var(--a-gold);margin-top:4px">{{ storage_stats.db_human }}</div>
+        <div style="font-size:0.72rem;color:var(--a-text-light);margin-top:2px">SQLite database.db</div>
+      </div>
+      <div style="background:var(--a-surface);padding:14px;border-radius:var(--r-md);border:1px solid var(--a-border)">
+        <div style="font-size:0.7rem;color:var(--a-text-muted);text-transform:uppercase;font-weight:700">Total Drive</div>
+        <div style="font-size:1.15rem;font-weight:800;color:var(--a-text);margin-top:4px">{{ storage_stats.total_human }}</div>
+        <div style="font-size:0.72rem;color:var(--a-text-light);margin-top:2px">{{ storage_stats.used_human }} used</div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
   <!-- ===== DANGER ZONE ===== -->
   <div class="form-section" style="margin-top:32px;border:1.5px solid rgba(239,68,68,0.4);border-radius:var(--r-lg);padding:24px;background:rgba(239,68,68,0.04)">
     <div class="form-section-title" style="color:var(--a-danger);margin-bottom:4px">🗑️ Danger Zone — Clear Data</div>

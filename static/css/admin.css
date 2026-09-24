@@ -816,3 +816,47 @@ tbody tr:hover { background: rgba(255,255,255,.025); }
   .admin-content { padding: 16px; }
   .stats-grid { grid-template-columns: 1fr; }
 }
+
+/* ============================================================
+   SIDEBAR STORAGE BALANCE WIDGET
+   ============================================================ */
+.sidebar-storage-box {
+  margin: 10px 10px 4px;
+  padding: 10px 12px;
+  background: var(--a-surface2);
+  border: 1px solid var(--a-border);
+  border-radius: var(--r-md);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+.storage-box-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.72rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.storage-box-title { color: var(--a-text-muted); display: flex; align-items: center; gap: 4px; }
+.storage-box-val { color: var(--a-success); font-weight: 700; }
+.storage-box-val.warn { color: var(--a-warning); }
+.storage-bar-track {
+  height: 5px;
+  background: var(--a-surface3);
+  border-radius: 99px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+.storage-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #10b981, #059669);
+  border-radius: 99px;
+  transition: width var(--t);
+}
+.storage-bar-fill.warn { background: linear-gradient(90deg, #f59e0b, #d97706); }
+.storage-bar-fill.crit { background: linear-gradient(90deg, #ef4444, #dc2626); }
+.storage-box-sub {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.65rem;
+  color: var(--a-text-light);
+}

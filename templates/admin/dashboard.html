@@ -43,6 +43,19 @@
       <div class="stat-change">Needs attention</div>
     </div>
   </div>
+
+  {% if storage_stats %}
+  <div class="stat-card">
+    <div class="stat-icon blue">💾</div>
+    <div style="flex:1">
+      <div class="stat-value" style="font-size:1.45rem">{{ storage_stats.free_human }}</div>
+      <div class="stat-label">Balance Space (Free)</div>
+      <div class="stat-change {% if storage_stats.status == 'healthy' %}up{% else %}warn{% endif %}">
+        {{ storage_stats.free_pct }}% free · Media {{ storage_stats.uploads_human }}
+      </div>
+    </div>
+  </div>
+  {% endif %}
 </div>
 
 <div style="display:grid;grid-template-columns:1fr 320px;gap:20px;align-items:start" class="dashboard-grid">

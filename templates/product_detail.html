@@ -21,18 +21,39 @@
   </nav>
 
   <div class="product-detail-grid">
-    <!-- Image Showcase -->
-    <div class="product-detail-img">
-      {% if product.image %}
-        <img src="{{ url_for('static', filename='uploads/' + product.image) }}"
-             alt="{{ product.name }}" />
-      {% else %}
-        <div class="product-detail-img-placeholder">
-          <svg width="64" height="64" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2c-.8 2.2-2.8 3.5-5 3.5 1.5 1.8 1.5 4.5 0 6.3 2.2 0 4.2 1.3 5 3.5.8-2.2 2.8-3.5 5-3.5-1.5-1.8-1.5-4.5 0-6.3-2.2 0-4.2-1.3-5-3.5zm0 5a2 2 0 1 1 0 4 2 2 0 0 1 0-4z"/>
-          </svg>
-          <span>🌸 YUMEI EDITION 🌸</span>
-        </div>
+    <!-- Image Showcase & Interactive Gallery -->
+    <div class="product-gallery-container">
+      <div class="product-detail-img" id="productDetailMainImgWrap">
+        {% if product.image %}
+          <img id="detailMainImg"
+               src="{{ url_for('static', filename='uploads/' + product.image) }}"
+               alt="{{ product.name }}" />
+        {% else %}
+          <div class="product-detail-img-placeholder">
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2c-.8 2.2-2.8 3.5-5 3.5 1.5 1.8 1.5 4.5 0 6.3 2.2 0 4.2 1.3 5 3.5.8-2.2 2.8-3.5 5-3.5-1.5-1.8-1.5-4.5 0-6.3-2.2 0-4.2-1.3-5-3.5zm0 5a2 2 0 1 1 0 4 2 2 0 0 1 0-4z"/>
+            </svg>
+            <span>🌸 YUMEI EDITION 🌸</span>
+          </div>
+        {% endif %}
+      </div>
+
+      {% if product.image and product.image2 %}
+      <!-- Dual Thumbnail Selector -->
+      <div class="product-detail-thumbs" id="productThumbs">
+        <button type="button" class="detail-thumb-btn active"
+                onclick="switchDetailImage('{{ url_for('static', filename='uploads/' + product.image) }}', this)"
+                aria-label="View Photo 1">
+          <img src="{{ url_for('static', filename='uploads/' + product.image) }}" alt="Photo 1 thumbnail" />
+          <span class="detail-thumb-label">Photo 1 (Cover)</span>
+        </button>
+        <button type="button" class="detail-thumb-btn"
+                onclick="switchDetailImage('{{ url_for('static', filename='uploads/' + product.image2) }}', this)"
+                aria-label="View Photo 2">
+          <img src="{{ url_for('static', filename='uploads/' + product.image2) }}" alt="Photo 2 thumbnail" />
+          <span class="detail-thumb-label">Photo 2 (Detail)</span>
+        </button>
+      </div>
       {% endif %}
     </div>
 
@@ -186,7 +207,13 @@
       <article class="product-card {% if item.stock == 0 %}out-of-stock{% endif %}">
         <a href="{{ url_for('product_detail', product_id=item.id) }}" class="product-img-wrap">
           {% if item.image %}
-            <img src="{{ url_for('static', filename='uploads/' + item.image) }}" alt="{{ item.name }}" loading="lazy" />
+            <img src="{{ url_for('static', filename='uploads/' + item.image) }}" alt="{{ item.name }}" class="product-primary-img" loading="lazy" />
+            {% if item.image2 %}
+            <img src="{{ url_for('static', filename='uploads/' + item.image2) }}" alt="{{ item.name }} angle 2" class="product-hover-img" loading="lazy" />
+            <div class="product-pic-count-badge">
+              <span>📸 2 Photos</span>
+            </div>
+            {% endif %}
           {% else %}
             <div class="product-img-placeholder">
               <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
@@ -236,6 +263,22 @@
 
   function addDetailToCart() {
     addToCart({{ product.id }}, detailQty);
+  }
+
+  function switchDetailImage(src, btn) {
+    const mainImg = document.getElementById('detailMainImg');
+    if (!mainImg) return;
+    mainImg.style.opacity = '0.3';
+    mainImg.style.transform = 'scale(0.98)';
+    setTimeout(() => {
+      mainImg.src = src;
+      mainImg.style.opacity = '1';
+      mainImg.style.transform = 'scale(1)';
+    }, 150);
+
+    const buttons = document.querySelectorAll('.detail-thumb-btn');
+    buttons.forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
   }
 </script>
 {% endblock %}

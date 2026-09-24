@@ -19,7 +19,8 @@ CREATE TABLE products (
     description TEXT,
     price REAL NOT NULL,
     stock INTEGER NOT NULL DEFAULT 0,
-    image TEXT, -- Stores the filename in /static/uploads
+    image TEXT, -- Stores the primary photo filename in /static/uploads
+    image2 TEXT, -- Stores the secondary photo filename in /static/uploads
     category TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

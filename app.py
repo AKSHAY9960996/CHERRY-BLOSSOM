@@ -1,4 +1,5 @@
 import os
+import shutil
 import sqlite3
 import hashlib
 import secrets
@@ -108,6 +109,13 @@ def init_db():
 
     try:
         db.execute("ALTER TABLE customers ADD COLUMN district TEXT")
+        db.commit()
+    except sqlite3.OperationalError:
+        pass
+
+    # --- Migrations: add image2 column to products if missing ---
+    try:
+        db.execute("ALTER TABLE products ADD COLUMN image2 TEXT")
         db.commit()
     except sqlite3.OperationalError:
         pass
@@ -225,12 +233,71 @@ def to_ist_filter(utc_str):
         return utc_str
 
 # ---------------------------------------------------------------------------
-# Context Processor – injects shop settings into every template
+# Storage Balance Helper (Admin Panel)
+# ---------------------------------------------------------------------------
+def get_storage_stats():
+    """Returns disk and upload folder storage metrics for the admin panel."""
+    try:
+        total, used, free = shutil.disk_usage(UPLOAD_FOLDER)
+
+        def format_bytes(b):
+            for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
+                if b < 1024.0:
+                    return f"{b:.1f} {unit}" if unit in ['MB', 'GB', 'TB'] else f"{int(b)} {unit}"
+                b /= 1024.0
+            return f"{b:.1f} PB"
+
+        used_pct = round((used / total) * 100, 1) if total > 0 else 0
+        free_pct = round((free / total) * 100, 1) if total > 0 else 0
+
+        # Uploads folder size & file count
+        uploads_size = 0
+        uploads_count = 0
+        if os.path.exists(UPLOAD_FOLDER):
+            for entry in os.scandir(UPLOAD_FOLDER):
+                if entry.is_file():
+                    uploads_size += entry.stat().st_size
+                    uploads_count += 1
+
+        # Database file size
+        db_size = os.path.getsize(DATABASE) if os.path.exists(DATABASE) else 0
+
+        # Status badge
+        status = 'healthy' if free_pct > 15 else ('warning' if free_pct > 5 else 'critical')
+
+        return {
+            'total_bytes': total,
+            'used_bytes': used,
+            'free_bytes': free,
+            'total_human': format_bytes(total),
+            'used_human': format_bytes(used),
+            'free_human': format_bytes(free),
+            'used_pct': used_pct,
+            'free_pct': free_pct,
+            'uploads_bytes': uploads_size,
+            'uploads_human': format_bytes(uploads_size),
+            'uploads_count': uploads_count,
+            'db_bytes': db_size,
+            'db_human': format_bytes(db_size),
+            'status': status
+        }
+    except Exception:
+        return {
+            'total_human': 'N/A', 'used_human': 'N/A', 'free_human': 'N/A',
+            'used_pct': 0, 'free_pct': 100, 'uploads_human': '0 MB',
+            'uploads_count': 0, 'db_human': '0 KB', 'status': 'healthy'
+        }
+
+# ---------------------------------------------------------------------------
+# Context Processor – injects shop settings and storage stats into templates
 # ---------------------------------------------------------------------------
 @app.context_processor
 def inject_settings():
     settings = get_all_settings()
-    return dict(settings=settings)
+    ctx = dict(settings=settings)
+    if request.path.startswith('/admin'):
+        ctx['storage_stats'] = get_storage_stats()
+    return ctx
 
 
 # ===========================================================================
@@ -445,7 +512,7 @@ def order_success():
 # API: get product info (for cart validation)
 @app.route('/api/product/<int:product_id>')
 def api_product(product_id):
-    product = query_db('SELECT id, name, price, stock, image FROM products WHERE id = ?', [product_id], one=True)
+    product = query_db('SELECT id, name, price, stock, image, image2 FROM products WHERE id = ?', [product_id], one=True)
     if not product:
         return jsonify({'error': 'Not found'}), 404
     return jsonify(dict(product))
@@ -610,16 +677,22 @@ def admin_add_product():
         new_cat     = request.form.get('new_category', '').strip()
         if new_cat:
             category = new_cat
+
+        # Primary Image (Cover)
         image_file = request.files.get('image')
         image_name = save_image(image_file) if image_file and image_file.filename else None
+
+        # Secondary Image (Angle / Detail)
+        image2_file = request.files.get('image2')
+        image2_name = save_image(image2_file) if image2_file and image2_file.filename else None
 
         if not name or not price:
             flash('Name and price are required.', 'error')
             return render_template('admin/product_form.html', product=None, categories=categories, action='Add')
 
         execute_db(
-            'INSERT INTO products (name, description, price, stock, image, category) VALUES (?,?,?,?,?,?)',
-            [name, description, float(price), int(stock), image_name, category]
+            'INSERT INTO products (name, description, price, stock, image, image2, category) VALUES (?,?,?,?,?,?,?)',
+            [name, description, float(price), int(stock), image_name, image2_name, category]
         )
         flash(f'Product "{name}" added successfully! 🎉', 'success')
         return redirect(url_for('admin_products'))
@@ -645,21 +718,48 @@ def admin_edit_product(product_id):
         new_cat     = request.form.get('new_category', '').strip()
         if new_cat:
             category = new_cat
+
+        # Primary Image (Cover)
         image_file = request.files.get('image')
         image_name = product['image']  # keep existing
-        if image_file and image_file.filename:
+        remove_image1 = request.form.get('remove_image1') == '1'
+        if remove_image1:
+            if image_name:
+                old_path = os.path.join(UPLOAD_FOLDER, image_name)
+                if os.path.exists(old_path):
+                    os.remove(old_path)
+            image_name = None
+        elif image_file and image_file.filename:
             new_img = save_image(image_file)
             if new_img:
-                # Delete old image
                 if image_name:
                     old_path = os.path.join(UPLOAD_FOLDER, image_name)
                     if os.path.exists(old_path):
                         os.remove(old_path)
                 image_name = new_img
 
+        # Secondary Image (Angle / Detail)
+        image2_file = request.files.get('image2')
+        image2_name = product['image2'] if 'image2' in product.keys() else None
+        remove_image2 = request.form.get('remove_image2') == '1'
+        if remove_image2:
+            if image2_name:
+                old_path = os.path.join(UPLOAD_FOLDER, image2_name)
+                if os.path.exists(old_path):
+                    os.remove(old_path)
+            image2_name = None
+        elif image2_file and image2_file.filename:
+            new_img2 = save_image(image2_file)
+            if new_img2:
+                if image2_name:
+                    old_path = os.path.join(UPLOAD_FOLDER, image2_name)
+                    if os.path.exists(old_path):
+                        os.remove(old_path)
+                image2_name = new_img2
+
         execute_db(
-            'UPDATE products SET name=?, description=?, price=?, stock=?, image=?, category=? WHERE id=?',
-            [name, description, float(price), int(stock), image_name, category, product_id]
+            'UPDATE products SET name=?, description=?, price=?, stock=?, image=?, image2=?, category=? WHERE id=?',
+            [name, description, float(price), int(stock), image_name, image2_name, category, product_id]
         )
         flash(f'Product "{name}" updated successfully! ✅', 'success')
         return redirect(url_for('admin_products'))
@@ -676,6 +776,10 @@ def admin_delete_product(product_id):
             img_path = os.path.join(UPLOAD_FOLDER, product['image'])
             if os.path.exists(img_path):
                 os.remove(img_path)
+        if 'image2' in product.keys() and product['image2']:
+            img2_path = os.path.join(UPLOAD_FOLDER, product['image2'])
+            if os.path.exists(img2_path):
+                os.remove(img2_path)
         execute_db('DELETE FROM products WHERE id = ?', [product_id])
         flash(f'Product "{product["name"]}" deleted.', 'success')
     return redirect(url_for('admin_products'))

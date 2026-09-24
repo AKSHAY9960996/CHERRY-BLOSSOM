@@ -70,30 +70,83 @@
       </div>
     </div>
 
-    <!-- Image -->
+    <!-- Product Images (Dual-Image System) -->
     <div class="form-section">
-      <div class="form-section-title">Product Image</div>
-      <div class="a-form-group">
-        <label for="image">Upload Image (JPG, PNG, WEBP)</label>
-        {% if product and product.image %}
-        <div style="margin-bottom:12px;border-radius:10px;overflow:hidden;max-width:200px;border:1px solid var(--a-border)">
-          <img src="{{ url_for('static', filename='uploads/' + product.image) }}"
-               alt="Current image" style="width:100%;display:block" />
+      <div class="form-section-title">📸 Product Images (Up to 2 Pictures)</div>
+      <p style="font-size:0.8rem;color:var(--a-text-muted);margin-bottom:16px">
+        Upload 2 pictures to give customers front and alternate/detail views. Customers will see a smooth hover-flip in the catalog and an interactive thumbnail gallery on the product page.
+      </p>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));gap:20px;">
+        <!-- Picture 1: Primary / Cover Image -->
+        <div class="a-form-group" style="background:var(--a-surface2);padding:16px;border-radius:var(--r-md);border:1px solid var(--a-border-md);">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+            <label for="image" style="font-weight:700;color:var(--a-gold);margin-bottom:0;">
+              Photo 1: Cover / Front View
+            </label>
+            <span class="badge badge-instock" style="font-size:0.65rem;">Primary</span>
+          </div>
+
+          {% if product and product.image %}
+          <div id="prevBox1" style="margin-bottom:12px;border-radius:10px;overflow:hidden;border:1px solid var(--a-border-md);background:var(--a-surface);">
+            <img src="{{ url_for('static', filename='uploads/' + product.image) }}"
+                 alt="Current primary image" style="width:100%;max-height:180px;object-fit:cover;display:block" />
+            <div style="padding:8px 12px;background:var(--a-surface);display:flex;justify-content:space-between;align-items:center;">
+              <span style="font-size:0.72rem;color:var(--a-text-muted)">Current Photo 1</span>
+              <label style="font-size:0.75rem;color:var(--a-danger);display:inline-flex;align-items:center;gap:4px;cursor:pointer;margin:0;">
+                <input type="checkbox" name="remove_image1" value="1" onchange="toggleRemoveBox('prevBox1', this.checked)"> Remove
+              </label>
+            </div>
+          </div>
+          {% endif %}
+
+          <div class="img-upload-area {% if product and product.image %}has-img{% endif %}"
+               id="uploadArea1"
+               onclick="document.getElementById('image').click()"
+               style="cursor:pointer;min-height:130px;">
+            <div class="img-upload-icon">📷</div>
+            <div class="img-upload-label" id="uploadLabel1">{% if product and product.image %}Change Photo 1{% else %}Click to upload Photo 1{% endif %}</div>
+            <div style="font-size:0.72rem;color:var(--a-text-light);margin-top:4px">JPG, PNG, WEBP (Max 5MB)</div>
+          </div>
+          <input type="file" id="image" name="image"
+                 accept="image/*" style="display:none"
+                 onchange="previewSingleImage(this, 'uploadArea1', 'uploadLabel1')" />
         </div>
-        <p style="font-size:0.78rem;color:var(--a-text-muted);margin-bottom:8px">
-          Upload a new image to replace the current one.
-        </p>
-        {% endif %}
-        <div class="img-upload-area {% if product and product.image %}has-img{% endif %}"
-             id="uploadArea"
-             onclick="document.getElementById('image').click()">
-          <div class="img-upload-icon">📷</div>
-          <div class="img-upload-label">Click to upload an image</div>
-          <div style="font-size:0.75rem;color:var(--a-text-light);margin-top:4px">Max 5MB. JPG, PNG, WEBP, GIF</div>
+
+        <!-- Picture 2: Secondary / Angle View -->
+        <div class="a-form-group" style="background:var(--a-surface2);padding:16px;border-radius:var(--r-md);border:1px solid var(--a-border-md);">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+            <label for="image2" style="font-weight:700;color:var(--a-primary);margin-bottom:0;">
+              Photo 2: Detail / Angle View
+            </label>
+            <span class="badge" style="font-size:0.65rem;background:var(--a-primary-lt);color:var(--a-primary);">Optional</span>
+          </div>
+
+          {% if product and product.image2 %}
+          <div id="prevBox2" style="margin-bottom:12px;border-radius:10px;overflow:hidden;border:1px solid var(--a-border-md);background:var(--a-surface);">
+            <img src="{{ url_for('static', filename='uploads/' + product.image2) }}"
+                 alt="Current secondary image" style="width:100%;max-height:180px;object-fit:cover;display:block" />
+            <div style="padding:8px 12px;background:var(--a-surface);display:flex;justify-content:space-between;align-items:center;">
+              <span style="font-size:0.72rem;color:var(--a-text-muted)">Current Photo 2</span>
+              <label style="font-size:0.75rem;color:var(--a-danger);display:inline-flex;align-items:center;gap:4px;cursor:pointer;margin:0;">
+                <input type="checkbox" name="remove_image2" value="1" onchange="toggleRemoveBox('prevBox2', this.checked)"> Remove
+              </label>
+            </div>
+          </div>
+          {% endif %}
+
+          <div class="img-upload-area {% if product and product.image2 %}has-img{% endif %}"
+               id="uploadArea2"
+               onclick="document.getElementById('image2').click()"
+               style="cursor:pointer;min-height:130px;">
+            <div class="img-upload-icon">📸</div>
+            <div class="img-upload-label" id="uploadLabel2">{% if product and product.image2 %}Change Photo 2{% else %}Click to upload Photo 2{% endif %}</div>
+            <div style="font-size:0.72rem;color:var(--a-text-light);margin-top:4px">JPG, PNG, WEBP (Max 5MB)</div>
+          </div>
+          <input type="file" id="image2" name="image2"
+                 accept="image/*" style="display:none"
+                 onchange="previewSingleImage(this, 'uploadArea2', 'uploadLabel2')" />
         </div>
-        <input type="file" id="image" name="image"
-               accept="image/*" style="display:none"
-               onchange="previewImage(this)" />
       </div>
     </div>
 
@@ -107,15 +160,27 @@
 </div>
 
 <script>
-  function previewImage(input) {
-    const area = document.getElementById('uploadArea');
+  function previewSingleImage(input, areaId, labelId) {
+    const area = document.getElementById(areaId);
+    const label = document.getElementById(labelId);
     if (input.files && input.files[0]) {
       const reader = new FileReader();
       reader.onload = (e) => {
-        area.innerHTML = `<img src="${e.target.result}" class="img-upload-preview" alt="Preview" />`;
+        area.innerHTML = `
+          <img src="${e.target.result}" class="img-upload-preview" alt="Preview" style="max-height:140px;border-radius:8px;object-fit:cover;" />
+          <div style="font-size:0.72rem;color:var(--a-primary);margin-top:6px;font-weight:600">Selected: ${input.files[0].name}</div>
+        `;
         area.classList.add('has-img');
       };
       reader.readAsDataURL(input.files[0]);
+    }
+  }
+
+  function toggleRemoveBox(boxId, isChecked) {
+    const box = document.getElementById(boxId);
+    if (box) {
+      box.style.opacity = isChecked ? '0.35' : '1';
+      box.style.filter = isChecked ? 'grayscale(1)' : 'none';
     }
   }
 </script>
