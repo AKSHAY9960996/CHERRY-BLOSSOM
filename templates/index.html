@@ -89,10 +89,10 @@
             <div class="slider-current-display">
               <span class="slider-under-text">Under</span>
               <span class="slider-current-value" id="sliderCurrentValue">
-                {{ settings.get('currency_symbol','₹') }}<span id="sliderValueNum">{{ max_price if max_price else price_range.max_p|int if price_range and price_range.max_p else 9999 }}</span>
+                {{ settings.get('currency_symbol','₹') }}<span id="sliderValueNum">{{ max_price if max_price else 3000 }}</span>
               </span>
             </div>
-            <span class="slider-label-right">{{ settings.get('currency_symbol','₹') }}{{ price_range.max_p|int if price_range and price_range.max_p else 9999 }}</span>
+            <span class="slider-label-right">{{ settings.get('currency_symbol','₹') }}3,000</span>
           </div>
 
           <!-- The range slider -->
@@ -100,9 +100,9 @@
             <div class="slider-fill" id="sliderFill"></div>
             <input type="range" id="priceSlider" class="price-slider"
                    min="0"
-                   max="{{ price_range.max_p|int if price_range and price_range.max_p else 9999 }}"
+                   max="3000"
                    step="50"
-                   value="{{ max_price if max_price else price_range.max_p|int if price_range and price_range.max_p else 9999 }}" />
+                   value="{{ max_price if max_price else 3000 }}" />
           </div>
 
           <div class="price-filter-actions">
