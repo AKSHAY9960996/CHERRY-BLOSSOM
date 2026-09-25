@@ -1,259 +1,241 @@
 {% extends "base.html" %}
 
 {% block title %}{{ settings.get('shop_name','My Shop') }} — 🌸 夢 Yumei Luxury Atelier{% endblock %}
-{% block description %}Discover handpicked Japanese cherry blossom haute couture and luxury goods at {{ settings.get('shop_name','My Shop') }}. Authentic quality, spring bloom edition.{% endblock %}
+{% block description %}Discover handpicked Japanese cherry blossom haute couture and luxury goods at {{
+settings.get('shop_name','My Shop') }}. Authentic quality, spring bloom edition.{% endblock %}
 
 {% block content %}
 
-  <!-- ===== HERO SECTION ===== -->
-  <section class="hero-section">
-    <div class="hero-overlay-glow"></div>
-    <div class="hero-content">
-      <div class="hero-badge">🌸 夢 YUMEI BLOOM COLLECTION — SPRING 2026 🌸</div>
-      <h1 class="hero-title">{{ settings.get('shop_name','My Shop') }}</h1>
-      <p class="hero-subtitle">
-        Where Yumei grace meets modern haute couture. Handcrafted silhouettes, delicate rose hues, and timeless elegance — curated for the discerning wardrobe.
-      </p>
-      <div class="hero-divider">
-        <span class="divider-line"></span>
-        <span class="divider-diamond">🌸</span>
-        <span class="divider-line"></span>
-      </div>
+<!-- ===== HERO SECTION ===== -->
+<section class="hero-section">
+  <div class="hero-overlay-glow"></div>
+  <div class="hero-content">
+    <div class="hero-badge">🌸 夢 YUMEI BLOOM COLLECTION — SPRING 2026 🌸</div>
+    <h1 class="hero-title">{{ settings.get('shop_name','My Shop') }}</h1>
+    <p class="hero-subtitle">
+      Where Yumei grace meets modern haute couture. Handcrafted silhouettes, delicate rose hues, and timeless elegance —
+      curated for the discerning wardrobe.
+    </p>
+    <div class="hero-divider">
+      <span class="divider-line"></span>
+      <span class="divider-diamond">🌸</span>
+      <span class="divider-line"></span>
     </div>
-  </section>
+  </div>
+</section>
 
-  <!-- ===== SHOP SECTION ===== -->
-  <div class="shop-section">
+<!-- ===== SHOP SECTION ===== -->
+<div class="shop-section">
 
-    <!-- Storefront Announcement Notice -->
-    {% if settings.get('store_notice') %}
-    <div class="store-notice-bar" role="alert">
-      <span class="store-notice-icon">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-          <circle cx="12" cy="12" r="10"></circle>
-          <line x1="12" y1="8" x2="12" y2="12"></line>
-          <line x1="12" y1="16" x2="12.01" y2="16"></line>
-        </svg>
-      </span>
-      <span class="store-notice-text">{{ settings.get('store_notice') }}</span>
-    </div>
+  <!-- Storefront Announcement Notice -->
+  {% if settings.get('store_notice') %}
+  <div class="store-notice-bar" role="alert">
+    <span class="store-notice-icon">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="8" x2="12" y2="12"></line>
+        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+      </svg>
+    </span>
+    <span class="store-notice-text">{{ settings.get('store_notice') }}</span>
+  </div>
+  {% endif %}
+
+  <!-- Category Filter Strip -->
+  {% if categories %}
+  <div class="filter-strip" role="navigation" aria-label="Product categories">
+    <span class="filter-strip-label">🌸 COLLECTION:</span>
+    <a href="{{ url_for('index') }}" class="category-tag {% if not active_category %}active{% endif %}">
+      All Selections
+    </a>
+    {% for cat in categories %}
+    <a href="{{ url_for('index', category=cat, q=search) }}"
+      class="category-tag {% if active_category == cat %}active{% endif %}">
+      {{ cat }}
+    </a>
+    {% endfor %}
+    {% if search or active_category or min_price or max_price %}
+    <a href="{{ url_for('index') }}" class="category-tag clear-filter">✕ Reset All</a>
     {% endif %}
+  </div>
+  {% endif %}
 
-    <!-- Category Filter Strip -->
-    {% if categories %}
-    <div class="filter-strip" role="navigation" aria-label="Product categories">
-      <span class="filter-strip-label">🌸 COLLECTION:</span>
-      <a href="{{ url_for('index') }}"
-         class="category-tag {% if not active_category %}active{% endif %}">
-        All Selections
-      </a>
-      {% for cat in categories %}
-      <a href="{{ url_for('index', category=cat, q=search) }}"
-         class="category-tag {% if active_category == cat %}active{% endif %}">
-        {{ cat }}
-      </a>
-      {% endfor %}
-      {% if search or active_category or min_price or max_price %}
-      <a href="{{ url_for('index') }}" class="category-tag clear-filter">✕ Reset All</a>
+  <!-- ===== PRICE FILTER ===== -->
+  <div class="price-filter-wrap" id="priceFilterWrap">
+    <button class="price-filter-toggle" id="priceFilterToggle" type="button" aria-expanded="false"
+      aria-controls="priceFilterPanel">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="4" y1="6" x2="20" y2="6"></line>
+        <line x1="8" y1="12" x2="16" y2="12"></line>
+        <line x1="11" y1="18" x2="13" y2="18"></line>
+      </svg>
+      <span>PRICE FILTER</span>
+      {% if max_price %}
+      <span class="price-filter-badge">Under {{ settings.get('currency_symbol','₹') }}{{ max_price }}</span>
       {% endif %}
-    </div>
-    {% endif %}
+      <span class="price-filter-arrow" id="priceFilterArrow">▾</span>
+    </button>
 
-    <!-- ===== PRICE FILTER ===== -->
-    <div class="price-filter-wrap" id="priceFilterWrap">
-      <button class="price-filter-toggle" id="priceFilterToggle" type="button"
-              aria-expanded="false" aria-controls="priceFilterPanel">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="4" y1="6" x2="20" y2="6"></line>
-          <line x1="8" y1="12" x2="16" y2="12"></line>
-          <line x1="11" y1="18" x2="13" y2="18"></line>
-        </svg>
-        <span>PRICE FILTER</span>
-        {% if max_price %}
-          <span class="price-filter-badge">Under {{ settings.get('currency_symbol','₹') }}{{ max_price }}</span>
-        {% endif %}
-        <span class="price-filter-arrow" id="priceFilterArrow">▾</span>
-      </button>
+    <div class="price-filter-panel" id="priceFilterPanel" style="display:none;">
+      <form method="GET" action="{{ url_for('index') }}" id="priceFilterForm">
+        {% if search %}<input type="hidden" name="q" value="{{ search }}">{% endif %}
+        {% if active_category %}<input type="hidden" name="category" value="{{ active_category }}">{% endif %}
+        <!-- hidden field updated by JS -->
+        <input type="hidden" name="max_price" id="maxPriceHidden" value="{{ max_price if max_price else '' }}" />
 
-      <div class="price-filter-panel" id="priceFilterPanel" style="display:none;">
-        <form method="GET" action="{{ url_for('index') }}" id="priceFilterForm">
-          {% if search %}<input type="hidden" name="q" value="{{ search }}">{% endif %}
-          {% if active_category %}<input type="hidden" name="category" value="{{ active_category }}">{% endif %}
-          <!-- hidden field updated by JS -->
-          <input type="hidden" name="max_price" id="maxPriceHidden"
-                 value="{{ max_price if max_price else '' }}" />
-
-          <!-- Slider label row -->
-          <div class="slider-label-row">
-            <span class="slider-label-left">{{ settings.get('currency_symbol','₹') }}0</span>
-            <div class="slider-current-display">
-              <span class="slider-under-text">Under</span>
-              <span class="slider-current-value" id="sliderCurrentValue">
-                {{ settings.get('currency_symbol','₹') }}<span id="sliderValueNum">{{ max_price if max_price else 3000 }}</span>
-              </span>
-            </div>
-            <span class="slider-label-right">{{ settings.get('currency_symbol','₹') }}3,000</span>
+        <!-- Slider label row -->
+        <div class="slider-label-row">
+          <span class="slider-label-left">{{ settings.get('currency_symbol','₹') }}0</span>
+          <div class="slider-current-display">
+            <span class="slider-under-text">Under</span>
+            <span class="slider-current-value" id="sliderCurrentValue">
+              {{ settings.get('currency_symbol','₹') }}<span id="sliderValueNum">{{ max_price if max_price else 3000
+                }}</span>
+            </span>
           </div>
+          <span class="slider-label-right">{{ settings.get('currency_symbol','₹') }}3,000</span>
+        </div>
 
-          <!-- The range slider -->
-          <div class="slider-track-wrap">
-            <div class="slider-fill" id="sliderFill"></div>
-            <input type="range" id="priceSlider" class="price-slider"
-                   min="0"
-                   max="3000"
-                   step="50"
-                   value="{{ max_price if max_price else 3000 }}" />
-          </div>
+        <!-- The range slider -->
+        <div class="slider-track-wrap">
+          <div class="slider-fill" id="sliderFill"></div>
+          <input type="range" id="priceSlider" class="price-slider" min="0" max="3000" step="50"
+            value="{{ max_price if max_price else 3000 }}" />
+        </div>
 
-          <div class="price-filter-actions">
-            <button type="submit" class="price-apply-btn">SHOW RESULTS</button>
-            {% if max_price %}
-            <a href="{{ url_for('index', q=search, category=active_category) }}"
-               class="price-clear-btn">CLEAR</a>
-            {% endif %}
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <!-- Section Header -->
-    <div class="section-header">
-      <div>
-        <h2 class="section-title">
-          {% if search %}
-            Results for "{{ search }}"
-          {% elif active_category %}
-            {{ active_category }}
-          {% else %}
-            Featured Yumei Pieces
-          {% endif %}
-        </h2>
-        <div class="section-count">
-          {{ products|length }} {{ 'piece' if products|length == 1 else 'pieces' }} available · 🌸
+        <div class="price-filter-actions">
+          <button type="submit" class="price-apply-btn">SHOW RESULTS</button>
           {% if max_price %}
-            · <span class="price-filter-active-tag">Under {{ settings.get('currency_symbol','₹') }}{{ max_price }}</span>
+          <a href="{{ url_for('index', q=search, category=active_category) }}" class="price-clear-btn">CLEAR</a>
           {% endif %}
         </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Section Header -->
+  <div class="section-header">
+    <div>
+      <h2 class="section-title">
+        {% if search %}
+        Results for "{{ search }}"
+        {% elif active_category %}
+        {{ active_category }}
+        {% else %}
+        Featured Yumei Pieces
+        {% endif %}
+      </h2>
+      <div class="section-count">
+        {{ products|length }} {{ 'piece' if products|length == 1 else 'pieces' }} available · 🌸
+        {% if max_price %}
+        · <span class="price-filter-active-tag">Under {{ settings.get('currency_symbol','₹') }}{{ max_price }}</span>
+        {% endif %}
       </div>
     </div>
+  </div>
 
-    <!-- Product Grid -->
-    <div class="products-grid" id="productsGrid">
-      {% if products %}
-        {% for product in products %}
-        <article class="product-card {% if product.stock == 0 %}out-of-stock{% endif %}"
-                 id="product-card-{{ product.id }}">
+  <!-- Product Grid -->
+  <div class="products-grid" id="productsGrid">
+    {% if products %}
+    {% for product in products %}
+    <article class="product-card {% if product.stock == 0 %}out-of-stock{% endif %}" id="product-card-{{ product.id }}">
 
-          <!-- Image Wrap -->
-          <div class="product-img-wrap">
-            <!-- Stock Badges -->
-            {% if product.stock == 0 %}
-              <span class="product-badge badge-oos">EXHAUSTED</span>
-            {% elif product.stock <= 2 %}
-              <span class="product-badge badge-low">LIMITED — ONLY {{ product.stock }} LEFT</span>
-            {% endif %}
+      <!-- Image Wrap -->
+      <div class="product-img-wrap">
+        <!-- Stock Badges -->
+        {% if product.stock == 0 %}
+        <span class="product-badge badge-oos">EXHAUSTED</span>
+        {% elif product.stock <= 2 %} <span class="product-badge badge-low">LIMITED — ONLY {{ product.stock }}
+          LEFT</span>
+          {% endif %}
 
-            {% if product.image %}
-              <img src="{{ url_for('static', filename='uploads/' + product.image) }}"
-                   alt="{{ product.name }}"
-                   class="product-primary-img"
-                   loading="lazy" />
-              {% if product.image2 %}
-              <img src="{{ url_for('static', filename='uploads/' + product.image2) }}"
-                   alt="{{ product.name }} detail view"
-                   class="product-hover-img"
-                   loading="lazy" />
-              <div class="product-pic-count-badge">
-                <span>📸 2 Photos</span>
-              </div>
-              {% endif %}
-            {% else %}
-              <div class="product-img-placeholder">
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 2c-.8 2.2-2.8 3.5-5 3.5 1.5 1.8 1.5 4.5 0 6.3 2.2 0 4.2 1.3 5 3.5.8-2.2 2.8-3.5 5-3.5-1.5-1.8-1.5-4.5 0-6.3-2.2 0-4.2-1.3-5-3.5zm0 5a2 2 0 1 1 0 4 2 2 0 0 1 0-4z"/>
-                </svg>
-                <p>YUMEI PIECE 🌸</p>
-              </div>
-            {% endif %}
-
-            <!-- Hover overlay -->
-            <div class="product-overlay">
-              <a href="{{ url_for('product_detail', product_id=product.id) }}"
-                 class="overlay-btn">
-                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                  <circle cx="12" cy="12" r="3"></circle>
-                </svg>
-                <span>VIEW YUMEI PIECE</span>
-              </a>
-            </div>
+          {% if product.image %}
+          <img src="{{ url_for('static', filename='uploads/' + product.image) }}" alt="{{ product.name }}"
+            class="product-primary-img" loading="lazy" />
+          {% if product.image2 %}
+          <img src="{{ url_for('static', filename='uploads/' + product.image2) }}" alt="{{ product.name }} detail view"
+            class="product-hover-img" loading="lazy" />
+          <div class="product-pic-count-badge">
+            <span>📸 2 Photos</span>
           </div>
+          {% endif %}
+          {% else %}
+          <div class="product-img-placeholder">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M12 2c-.8 2.2-2.8 3.5-5 3.5 1.5 1.8 1.5 4.5 0 6.3 2.2 0 4.2 1.3 5 3.5.8-2.2 2.8-3.5 5-3.5-1.5-1.8-1.5-4.5 0-6.3-2.2 0-4.2-1.3-5-3.5zm0 5a2 2 0 1 1 0 4 2 2 0 0 1 0-4z" />
+            </svg>
+            <p>YUMEI PIECE 🌸</p>
+          </div>
+          {% endif %}
 
-          <!-- Info -->
-          <div class="product-info">
-            {% if product.category %}
-            <div class="product-category">🌸 {{ product.category }}</div>
-            {% endif %}
-            <a href="{{ url_for('product_detail', product_id=product.id) }}"
-               class="product-name">{{ product.name }}</a>
+          <!-- Hover overlay -->
+          <div class="product-overlay">
+            <a href="{{ url_for('product_detail', product_id=product.id) }}" class="overlay-btn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+              <span>VIEW YUMEI PIECE</span>
+            </a>
+          </div>
+      </div>
 
-            <div class="product-price-row">
-              <span class="product-price">
-                {{ settings.get('currency_symbol','₹') }}{{ "%.2f"|format(product.price) }}
-              </span>
-              <span class="delivery-charge-tag">+ Express Shipping</span>
-            </div>
+      <!-- Info -->
+      <div class="product-info">
+        {% if product.category %}
+        <div class="product-category">🌸 {{ product.category }}</div>
+        {% endif %}
+        <a href="{{ url_for('product_detail', product_id=product.id) }}" class="product-name">{{ product.name }}</a>
 
-            {% if product.stock > 0 %}
-              <div class="product-stock {% if product.stock <= 2 %}low{% endif %}">
-                {% if product.stock <= 2 %}
-                  🌸 Only {{ product.stock }} available in Yumei Atelier
-                {% else %}
-                  ✓ In Stock — Yumei Reserved
-                {% endif %}
-              </div>
+        <div class="product-price-row">
+          <span class="product-price">
+            {{ settings.get('currency_symbol','₹') }}{{ "%.2f"|format(product.price) }}
+          </span>
+          <span class="delivery-charge-tag">+ Express Shipping</span>
+        </div>
+
+        {% if product.stock > 0 %}
+        <div class="product-stock {% if product.stock <= 2 %}low{% endif %}">
+          {% if product.stock <= 2 %} 🌸 Only {{ product.stock }} available in Yumei Atelier {% else %} ✓ In Stock —
+            Yumei Reserved {% endif %} </div>
             {% else %}
-              <div class="product-stock oos">✕ Exhausted / Out of Stock</div>
+            <div class="product-stock oos">✕ Exhausted / Out of Stock</div>
             {% endif %}
 
             <div class="product-divider"></div>
 
-            <button
-              class="btn-add-cart"
-              id="add-cart-{{ product.id }}"
-              onclick="addToCart({{ product.id }})"
-              {% if product.stock == 0 %}disabled{% endif %}
-              aria-label="Add {{ product.name }} to bag"
-            >
+            <button class="btn-add-cart" id="add-cart-{{ product.id }}" onclick="addToCart({{ product.id }})" {% if
+              product.stock==0 %}disabled{% endif %} aria-label="Add {{ product.name }} to bag">
               {% if product.stock > 0 %}
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
-                  <line x1="3" y1="6" x2="21" y2="6"></line>
-                  <path d="M16 10a4 4 0 0 1-8 0"></path>
-                </svg>
-                <span>ADD TO YUMEI BAG</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <path d="M16 10a4 4 0 0 1-8 0"></path>
+              </svg>
+              <span>ADD TO YUMEI BAG</span>
               {% else %}
-                <span>OUT OF STOCK</span>
+              <span>OUT OF STOCK</span>
               {% endif %}
             </button>
-          </div>
-        </article>
-        {% endfor %}
-      {% else %}
-        <div class="empty-state">
-          <div class="empty-icon">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
-              <circle cx="11" cy="11" r="8"></circle>
-              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-            </svg>
-          </div>
-          <h3>No Yumei Selections Found</h3>
-          <p>Try refining your search query or collection filter.</p>
         </div>
-      {% endif %}
+    </article>
+    {% endfor %}
+    {% else %}
+    <div class="empty-state">
+      <div class="empty-icon">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+      </div>
+      <h3>No Yumei Selections Found</h3>
+      <p>Try refining your search query or collection filter.</p>
     </div>
+    {% endif %}
+  </div>
 
-  </div><!-- /shop-section -->
+</div><!-- /shop-section -->
 
 {% endblock %}
 
@@ -262,8 +244,8 @@
   (function () {
     // ── Panel toggle ───────────────────────────────────────
     const toggle = document.getElementById('priceFilterToggle');
-    const panel  = document.getElementById('priceFilterPanel');
-    const arrow  = document.getElementById('priceFilterArrow');
+    const panel = document.getElementById('priceFilterPanel');
+    const arrow = document.getElementById('priceFilterArrow');
 
     if (!toggle || !panel) return;
 
@@ -283,9 +265,9 @@
     });
 
     // ── Slider logic ───────────────────────────────────────
-    const slider     = document.getElementById('priceSlider');
-    const hidden     = document.getElementById('maxPriceHidden');
-    const valueNum   = document.getElementById('sliderValueNum');
+    const slider = document.getElementById('priceSlider');
+    const hidden = document.getElementById('maxPriceHidden');
+    const valueNum = document.getElementById('sliderValueNum');
 
     function updateFill() {
       if (!slider) return;
@@ -294,7 +276,7 @@
       slider.style.background =
         `linear-gradient(to right, var(--clr-gold) 0%, var(--clr-gold) ${pct}%, var(--clr-border) ${pct}%, var(--clr-border) 100%)`;
       if (valueNum) valueNum.textContent = Number(slider.value).toLocaleString('en-IN');
-      if (hidden)   hidden.value = slider.value;
+      if (hidden) hidden.value = slider.value;
     }
 
     if (slider) {
@@ -309,4 +291,3 @@
   })();
 </script>
 {% endblock %}
-

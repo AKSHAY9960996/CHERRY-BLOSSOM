@@ -1,10 +1,15 @@
 {% extends "base.html" %}
 
 {% block title %}{{ product.name }} — {{ settings.get('shop_name','My Shop') }} · 🌸 桜{% endblock %}
-{% block description %}{{ product.description or product.name }} — Discover fine Japanese cherry blossom craftsmanship at {{ settings.get('shop_name','My Shop') }}.{% endblock %}
+{% block description %}{{ product.description or product.name }} — Discover fine Japanese cherry blossom craftsmanship
+at {{ settings.get('shop_name','My Shop') }}.{% endblock %}
 
 {% block head %}
-<style>.sakura-container { display: none !important; }</style>
+<style>
+  .sakura-container {
+    display: none !important;
+  }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -25,16 +30,16 @@
     <div class="product-gallery-container">
       <div class="product-detail-img" id="productDetailMainImgWrap">
         {% if product.image %}
-          <img id="detailMainImg"
-               src="{{ url_for('static', filename='uploads/' + product.image) }}"
-               alt="{{ product.name }}" />
+        <img id="detailMainImg" src="{{ url_for('static', filename='uploads/' + product.image) }}"
+          alt="{{ product.name }}" />
         {% else %}
-          <div class="product-detail-img-placeholder">
-            <svg width="64" height="64" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 2c-.8 2.2-2.8 3.5-5 3.5 1.5 1.8 1.5 4.5 0 6.3 2.2 0 4.2 1.3 5 3.5.8-2.2 2.8-3.5 5-3.5-1.5-1.8-1.5-4.5 0-6.3-2.2 0-4.2-1.3-5-3.5zm0 5a2 2 0 1 1 0 4 2 2 0 0 1 0-4z"/>
-            </svg>
-            <span>🌸 YUMEI EDITION 🌸</span>
-          </div>
+        <div class="product-detail-img-placeholder">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M12 2c-.8 2.2-2.8 3.5-5 3.5 1.5 1.8 1.5 4.5 0 6.3 2.2 0 4.2 1.3 5 3.5.8-2.2 2.8-3.5 5-3.5-1.5-1.8-1.5-4.5 0-6.3-2.2 0-4.2-1.3-5-3.5zm0 5a2 2 0 1 1 0 4 2 2 0 0 1 0-4z" />
+          </svg>
+          <span>🌸 YUMEI EDITION 🌸</span>
+        </div>
         {% endif %}
       </div>
 
@@ -42,14 +47,14 @@
       <!-- Dual Thumbnail Selector -->
       <div class="product-detail-thumbs" id="productThumbs">
         <button type="button" class="detail-thumb-btn active"
-                onclick="switchDetailImage('{{ url_for('static', filename='uploads/' + product.image) }}', this)"
-                aria-label="View Photo 1">
+          onclick="switchDetailImage('{{ url_for('static', filename='uploads/' + product.image) }}', this)"
+          aria-label="View Photo 1">
           <img src="{{ url_for('static', filename='uploads/' + product.image) }}" alt="Photo 1 thumbnail" />
           <span class="detail-thumb-label">Photo 1 (Cover)</span>
         </button>
         <button type="button" class="detail-thumb-btn"
-                onclick="switchDetailImage('{{ url_for('static', filename='uploads/' + product.image2) }}', this)"
-                aria-label="View Photo 2">
+          onclick="switchDetailImage('{{ url_for('static', filename='uploads/' + product.image2) }}', this)"
+          aria-label="View Photo 2">
           <img src="{{ url_for('static', filename='uploads/' + product.image2) }}" alt="Photo 2 thumbnail" />
           <span class="detail-thumb-label">Photo 2 (Detail)</span>
         </button>
@@ -75,20 +80,29 @@
       <!-- Stock Indicator -->
       <div class="detail-stock-wrap">
         {% if product.stock > 2 %}
-          <span class="stock-indicator in-stock">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
-            In Stock — Yumei Reserved ({{ product.stock }} available)
-          </span>
+        <span class="stock-indicator in-stock">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          In Stock — Yumei Reserved ({{ product.stock }} available)
+        </span>
         {% elif product.stock > 0 %}
-          <span class="stock-indicator low-stock">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-            Limited Availability — Only {{ product.stock }} left in Atelier!
-          </span>
+        <span class="stock-indicator low-stock">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          Limited Availability — Only {{ product.stock }} left in Atelier!
+        </span>
         {% else %}
-          <span class="stock-indicator oos">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-            Exhausted / Out of Stock
-          </span>
+        <span class="stock-indicator oos">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+          Exhausted / Out of Stock
+        </span>
         {% endif %}
       </div>
 
@@ -108,10 +122,8 @@
       </div>
 
       <div class="detail-actions-group">
-        <button class="btn-add-detail"
-                id="addDetailCartBtn"
-                onclick="addDetailToCart()"
-                aria-label="Add {{ product.name }} to bag">
+        <button class="btn-add-detail" id="addDetailCartBtn" onclick="addDetailToCart()"
+          aria-label="Add {{ product.name }} to bag">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
             <line x1="3" y1="6" x2="21" y2="6"></line>
@@ -122,9 +134,11 @@
 
         <!-- WhatsApp Concierge Inquiry Button -->
         <a href="https://wa.me/{{ settings.get('whatsapp_number','') }}?text={{ ('Hi, I would like to enquire about this piece: ' + product.name + ' (' + settings.get('currency_symbol','₹') + (product.price|string) + '). Link: ' + request.url) | urlencode }}"
-           target="_blank"
-           class="btn-whatsapp-enquiry">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984 0 1.76.459 3.478 1.33 4.99L2 22l5.133-1.343a9.96 9.6 0 004.877 1.28h.005c5.507 0 9.99-4.479 9.99-9.986 0-2.667-1.037-5.176-2.922-7.062A9.923 9.923 0 0012.012 2z"/></svg>
+          target="_blank" class="btn-whatsapp-enquiry">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984 0 1.76.459 3.478 1.33 4.99L2 22l5.133-1.343a9.96 9.6 0 004.877 1.28h.005c5.507 0 9.99-4.479 9.99-9.986 0-2.667-1.037-5.176-2.922-7.062A9.923 9.923 0 0012.012 2z" />
+          </svg>
           <span>Direct Yumei Inquiry on WhatsApp</span>
         </a>
       </div>
@@ -133,9 +147,11 @@
         <button class="btn-add-detail" disabled>OUT OF STOCK</button>
         <!-- WhatsApp Restock Inquiry -->
         <a href="https://wa.me/{{ settings.get('whatsapp_number','') }}?text={{ ('Hi, I am interested in this out-of-stock item: ' + product.name + '. Please inform me when restocked! Link: ' + request.url) | urlencode }}"
-           target="_blank"
-           class="btn-whatsapp-enquiry restock">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984 0 1.76.459 3.478 1.33 4.99L2 22l5.133-1.343a9.96 9.6 0 004.877 1.28h.005c5.507 0 9.99-4.479 9.99-9.986 0-2.667-1.037-5.176-2.922-7.062A9.923 9.923 0 0012.012 2z"/></svg>
+          target="_blank" class="btn-whatsapp-enquiry restock">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984 0 1.76.459 3.478 1.33 4.99L2 22l5.133-1.343a9.96 9.6 0 004.877 1.28h.005c5.507 0 9.99-4.479 9.99-9.986 0-2.667-1.037-5.176-2.922-7.062A9.923 9.923 0 0012.012 2z" />
+          </svg>
           <span>Inquire About Restock via Concierge</span>
         </a>
       </div>
@@ -160,7 +176,8 @@
         <div class="trust-badge-item">
           <div class="badge-icon">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
-              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+              <polygon
+                points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
             </svg>
           </div>
           <div class="badge-text">
@@ -207,19 +224,22 @@
       <article class="product-card {% if item.stock == 0 %}out-of-stock{% endif %}">
         <a href="{{ url_for('product_detail', product_id=item.id) }}" class="product-img-wrap">
           {% if item.image %}
-            <img src="{{ url_for('static', filename='uploads/' + item.image) }}" alt="{{ item.name }}" class="product-primary-img" loading="lazy" />
-            {% if item.image2 %}
-            <img src="{{ url_for('static', filename='uploads/' + item.image2) }}" alt="{{ item.name }} angle 2" class="product-hover-img" loading="lazy" />
-            <div class="product-pic-count-badge">
-              <span>📸 2 Photos</span>
-            </div>
-            {% endif %}
+          <img src="{{ url_for('static', filename='uploads/' + item.image) }}" alt="{{ item.name }}"
+            class="product-primary-img" loading="lazy" />
+          {% if item.image2 %}
+          <img src="{{ url_for('static', filename='uploads/' + item.image2) }}" alt="{{ item.name }} angle 2"
+            class="product-hover-img" loading="lazy" />
+          <div class="product-pic-count-badge">
+            <span>📸 2 Photos</span>
+          </div>
+          {% endif %}
           {% else %}
-            <div class="product-img-placeholder">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2c-.8 2.2-2.8 3.5-5 3.5 1.5 1.8 1.5 4.5 0 6.3 2.2 0 4.2 1.3 5 3.5.8-2.2 2.8-3.5 5-3.5-1.5-1.8-1.5-4.5 0-6.3-2.2 0-4.2-1.3-5-3.5zm0 5a2 2 0 1 1 0 4 2 2 0 0 1 0-4z"/>
-              </svg>
-            </div>
+          <div class="product-img-placeholder">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M12 2c-.8 2.2-2.8 3.5-5 3.5 1.5 1.8 1.5 4.5 0 6.3 2.2 0 4.2 1.3 5 3.5.8-2.2 2.8-3.5 5-3.5-1.5-1.8-1.5-4.5 0-6.3-2.2 0-4.2-1.3-5-3.5zm0 5a2 2 0 1 1 0 4 2 2 0 0 1 0-4z" />
+            </svg>
+          </div>
           {% endif %}
         </a>
         <div class="product-info">
@@ -229,17 +249,16 @@
             <span class="product-price">{{ settings.get('currency_symbol','₹') }}{{ "%.2f"|format(item.price) }}</span>
             <span class="delivery-charge-tag">+ Express Shipping</span>
           </div>
-          <button class="btn-add-cart" onclick="addToCart({{ item.id }})"
-                  {% if item.stock == 0 %}disabled{% endif %}>
+          <button class="btn-add-cart" onclick="addToCart({{ item.id }})" {% if item.stock==0 %}disabled{% endif %}>
             {% if item.stock > 0 %}
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
-                <line x1="3" y1="6" x2="21" y2="6"></line>
-                <path d="M16 10a4 4 0 0 1-8 0"></path>
-              </svg>
-              <span>ADD TO YUMEI BAG</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <path d="M16 10a4 4 0 0 1-8 0"></path>
+            </svg>
+            <span>ADD TO YUMEI BAG</span>
             {% else %}
-              <span>OUT OF STOCK</span>
+            <span>OUT OF STOCK</span>
             {% endif %}
           </button>
         </div>
