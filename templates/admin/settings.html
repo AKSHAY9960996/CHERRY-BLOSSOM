@@ -276,6 +276,17 @@
         <div style="font-size:0.72rem;color:var(--a-text-light);margin-top:2px">{{ storage_stats.used_human }} used</div>
       </div>
     </div>
+
+    <!-- Quick Cache Purge -->
+    <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--a-border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+      <div>
+        <div style="font-size:0.82rem;font-weight:600;color:var(--a-text);">🧹 Browser &amp; Service Worker Cache</div>
+        <div style="font-size:0.72rem;color:var(--a-text-muted);">Purge stored CSS, JS, and PWA caches instantly without needing to press Shift+R.</div>
+      </div>
+      <button type="button" class="topbar-btn" onclick="clearAppCache(this)" style="background:var(--a-surface);border:1px solid var(--a-border-md);color:var(--a-text);font-weight:700;">
+        🧹 Purge &amp; Clear Cache
+      </button>
+    </div>
   </div>
   {% endif %}
 

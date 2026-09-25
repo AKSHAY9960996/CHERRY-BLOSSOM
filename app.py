@@ -309,6 +309,18 @@ def index():
     search = request.args.get('q', '').strip()
     category = request.args.get('category', '').strip()
 
+    # Price filter params
+    min_price_raw = request.args.get('min_price', '').strip()
+    max_price_raw = request.args.get('max_price', '').strip()
+    try:
+        min_price = float(min_price_raw) if min_price_raw else None
+    except ValueError:
+        min_price = None
+    try:
+        max_price = float(max_price_raw) if max_price_raw else None
+    except ValueError:
+        max_price = None
+
     # Respect the admin toggle: hide out-of-stock products if disabled
     show_oos = get_setting('show_out_of_stock', '1')
 
@@ -323,6 +335,12 @@ def index():
     if category:
         query += ' AND category = ?'
         args.append(category)
+    if min_price is not None:
+        query += ' AND price >= ?'
+        args.append(min_price)
+    if max_price is not None:
+        query += ' AND price <= ?'
+        args.append(max_price)
     # Order in-stock products first, then by newest addition
     query += ' ORDER BY CASE WHEN stock > 0 THEN 0 ELSE 1 END ASC, created_at DESC'
 
@@ -335,11 +353,21 @@ def index():
     cat_query += ' ORDER BY category'
     categories = [row['category'] for row in query_db(cat_query)]
 
+    # Price range of ALL visible products (for placeholder hints)
+    price_range = query_db(
+        'SELECT MIN(price) as min_p, MAX(price) as max_p FROM products WHERE 1=1' +
+        (' AND stock > 0' if show_oos == '0' else ''),
+        one=True
+    )
+
     return render_template('index.html',
                            products=products,
                            categories=categories,
                            search=search,
-                           active_category=category)
+                           active_category=category,
+                           min_price=min_price_raw,
+                           max_price=max_price_raw,
+                           price_range=price_range)
 
 
 @app.route('/product/<int:product_id>')

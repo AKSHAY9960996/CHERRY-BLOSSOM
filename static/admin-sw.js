@@ -1,7 +1,7 @@
 // Admin PWA Service Worker
 // Caches admin shell pages for offline fallback and fast repeat loads
 
-const CACHE_NAME = 'admin-shell-v1';
+const CACHE_NAME = 'admin-shell-v2';
 
 // Resources to pre-cache on install
 const PRECACHE_URLS = [
@@ -38,8 +38,8 @@ self.addEventListener('activate', event => {
 });
 
 // ── Fetch ─────────────────────────────────────────────────────────────────────
-// Strategy: Network-first for admin pages (always fresh data),
-//           Cache-first for static assets.
+// Strategy: Network-first for admin pages and CSS/JS (always fresh without Shift+R),
+//           Cache-first for media assets.
 self.addEventListener('fetch', event => {
   const { request } = event;
   const url = new URL(request.url);
@@ -47,7 +47,29 @@ self.addEventListener('fetch', event => {
   // Only handle same-origin requests
   if (url.origin !== location.origin) return;
 
-  // Static assets → Cache-first
+  // If nocache requested, bypass cache completely
+  if (url.searchParams.has('_nocache')) {
+    event.respondWith(fetch(request));
+    return;
+  }
+
+  // CSS and JS → Network-first (instant updates without Shift+R)
+  if (url.pathname.endsWith('.css') || url.pathname.endsWith('.js')) {
+    event.respondWith(
+      fetch(request)
+        .then(response => {
+          if (response.ok) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then(c => c.put(request, clone));
+          }
+          return response;
+        })
+        .catch(() => caches.match(request))
+    );
+    return;
+  }
+
+  // Static images/icons → Cache-first
   if (url.pathname.startsWith('/static/')) {
     event.respondWith(
       caches.match(request).then(cached => {

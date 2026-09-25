@@ -53,11 +53,64 @@
         {{ cat }}
       </a>
       {% endfor %}
-      {% if search or active_category %}
-      <a href="{{ url_for('index') }}" class="category-tag clear-filter">✕ Reset Filter</a>
+      {% if search or active_category or min_price or max_price %}
+      <a href="{{ url_for('index') }}" class="category-tag clear-filter">✕ Reset All</a>
       {% endif %}
     </div>
     {% endif %}
+
+    <!-- ===== PRICE FILTER ===== -->
+    <div class="price-filter-wrap" id="priceFilterWrap">
+      <button class="price-filter-toggle" id="priceFilterToggle" type="button"
+              aria-expanded="false" aria-controls="priceFilterPanel">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="4" y1="6" x2="20" y2="6"></line>
+          <line x1="8" y1="12" x2="16" y2="12"></line>
+          <line x1="11" y1="18" x2="13" y2="18"></line>
+        </svg>
+        <span>PRICE FILTER</span>
+        {% if min_price or max_price %}
+          <span class="price-filter-badge">
+            {{ settings.get('currency_symbol','₹') }}{{ min_price if min_price else '0' }}
+            — {{ settings.get('currency_symbol','₹') }}{{ max_price if max_price else '∞' }}
+          </span>
+        {% endif %}
+        <span class="price-filter-arrow" id="priceFilterArrow">▾</span>
+      </button>
+
+      <div class="price-filter-panel" id="priceFilterPanel" style="display:none;">
+        <form method="GET" action="{{ url_for('index') }}" id="priceFilterForm">
+          {% if search %}<input type="hidden" name="q" value="{{ search }}">{% endif %}
+          {% if active_category %}<input type="hidden" name="category" value="{{ active_category }}">{% endif %}
+
+          <div class="price-inputs-row">
+            <div class="price-input-group">
+              <label for="minPriceInput">MIN {{ settings.get('currency_symbol','₹') }}</label>
+              <input type="number" name="min_price" id="minPriceInput"
+                     min="0" step="1"
+                     placeholder="{{ price_range.min_p|int if price_range and price_range.min_p else '0' }}"
+                     value="{{ min_price }}" />
+            </div>
+            <span class="price-range-sep">—</span>
+            <div class="price-input-group">
+              <label for="maxPriceInput">MAX {{ settings.get('currency_symbol','₹') }}</label>
+              <input type="number" name="max_price" id="maxPriceInput"
+                     min="0" step="1"
+                     placeholder="{{ price_range.max_p|int if price_range and price_range.max_p else '9999' }}"
+                     value="{{ max_price }}" />
+            </div>
+          </div>
+
+          <div class="price-filter-actions">
+            <button type="submit" class="price-apply-btn">APPLY</button>
+            {% if min_price or max_price %}
+            <a href="{{ url_for('index', q=search, category=active_category) }}"
+               class="price-clear-btn">CLEAR</a>
+            {% endif %}
+          </div>
+        </form>
+      </div>
+    </div>
 
     <!-- Section Header -->
     <div class="section-header">
@@ -73,6 +126,9 @@
         </h2>
         <div class="section-count">
           {{ products|length }} {{ 'piece' if products|length == 1 else 'pieces' }} available · 🌸
+          {% if min_price or max_price %}
+            · <span class="price-filter-active-tag">{{ settings.get('currency_symbol','₹') }}{{ min_price if min_price else '0' }} – {{ settings.get('currency_symbol','₹') }}{{ max_price if max_price else '∞' }}</span>
+          {% endif %}
         </div>
       </div>
     </div>
@@ -195,4 +251,38 @@
 
   </div><!-- /shop-section -->
 
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // ── Price Filter Panel Toggle ──────────────────────────
+  (function () {
+    const toggle  = document.getElementById('priceFilterToggle');
+    const panel   = document.getElementById('priceFilterPanel');
+    const arrow   = document.getElementById('priceFilterArrow');
+
+    if (!toggle || !panel) return;
+
+    function openPanel() {
+      panel.style.display = 'block';
+      arrow.classList.add('open');
+      toggle.setAttribute('aria-expanded', 'true');
+    }
+
+    function closePanel() {
+      panel.style.display = 'none';
+      arrow.classList.remove('open');
+      toggle.setAttribute('aria-expanded', 'false');
+    }
+
+    toggle.addEventListener('click', function () {
+      panel.style.display === 'none' ? openPanel() : closePanel();
+    });
+
+    // Auto-open if a price filter is already applied
+    {% if min_price or max_price %}
+    openPanel();
+    {% endif %}
+  })();
+</script>
 {% endblock %}
