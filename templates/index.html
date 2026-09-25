@@ -69,11 +69,8 @@
           <line x1="11" y1="18" x2="13" y2="18"></line>
         </svg>
         <span>PRICE FILTER</span>
-        {% if min_price or max_price %}
-          <span class="price-filter-badge">
-            {{ settings.get('currency_symbol','₹') }}{{ min_price if min_price else '0' }}
-            — {{ settings.get('currency_symbol','₹') }}{{ max_price if max_price else '∞' }}
-          </span>
+        {% if max_price %}
+          <span class="price-filter-badge">Under {{ settings.get('currency_symbol','₹') }}{{ max_price }}</span>
         {% endif %}
         <span class="price-filter-arrow" id="priceFilterArrow">▾</span>
       </button>
@@ -82,28 +79,35 @@
         <form method="GET" action="{{ url_for('index') }}" id="priceFilterForm">
           {% if search %}<input type="hidden" name="q" value="{{ search }}">{% endif %}
           {% if active_category %}<input type="hidden" name="category" value="{{ active_category }}">{% endif %}
+          <!-- hidden field updated by JS -->
+          <input type="hidden" name="max_price" id="maxPriceHidden"
+                 value="{{ max_price if max_price else '' }}" />
 
-          <div class="price-inputs-row">
-            <div class="price-input-group">
-              <label for="minPriceInput">MIN {{ settings.get('currency_symbol','₹') }}</label>
-              <input type="number" name="min_price" id="minPriceInput"
-                     min="0" step="1"
-                     placeholder="{{ price_range.min_p|int if price_range and price_range.min_p else '0' }}"
-                     value="{{ min_price }}" />
+          <!-- Slider label row -->
+          <div class="slider-label-row">
+            <span class="slider-label-left">{{ settings.get('currency_symbol','₹') }}0</span>
+            <div class="slider-current-display">
+              <span class="slider-under-text">Under</span>
+              <span class="slider-current-value" id="sliderCurrentValue">
+                {{ settings.get('currency_symbol','₹') }}<span id="sliderValueNum">{{ max_price if max_price else price_range.max_p|int if price_range and price_range.max_p else 9999 }}</span>
+              </span>
             </div>
-            <span class="price-range-sep">—</span>
-            <div class="price-input-group">
-              <label for="maxPriceInput">MAX {{ settings.get('currency_symbol','₹') }}</label>
-              <input type="number" name="max_price" id="maxPriceInput"
-                     min="0" step="1"
-                     placeholder="{{ price_range.max_p|int if price_range and price_range.max_p else '9999' }}"
-                     value="{{ max_price }}" />
-            </div>
+            <span class="slider-label-right">{{ settings.get('currency_symbol','₹') }}{{ price_range.max_p|int if price_range and price_range.max_p else 9999 }}</span>
+          </div>
+
+          <!-- The range slider -->
+          <div class="slider-track-wrap">
+            <div class="slider-fill" id="sliderFill"></div>
+            <input type="range" id="priceSlider" class="price-slider"
+                   min="0"
+                   max="{{ price_range.max_p|int if price_range and price_range.max_p else 9999 }}"
+                   step="50"
+                   value="{{ max_price if max_price else price_range.max_p|int if price_range and price_range.max_p else 9999 }}" />
           </div>
 
           <div class="price-filter-actions">
-            <button type="submit" class="price-apply-btn">APPLY</button>
-            {% if min_price or max_price %}
+            <button type="submit" class="price-apply-btn">SHOW RESULTS</button>
+            {% if max_price %}
             <a href="{{ url_for('index', q=search, category=active_category) }}"
                class="price-clear-btn">CLEAR</a>
             {% endif %}
@@ -126,8 +130,8 @@
         </h2>
         <div class="section-count">
           {{ products|length }} {{ 'piece' if products|length == 1 else 'pieces' }} available · 🌸
-          {% if min_price or max_price %}
-            · <span class="price-filter-active-tag">{{ settings.get('currency_symbol','₹') }}{{ min_price if min_price else '0' }} – {{ settings.get('currency_symbol','₹') }}{{ max_price if max_price else '∞' }}</span>
+          {% if max_price %}
+            · <span class="price-filter-active-tag">Under {{ settings.get('currency_symbol','₹') }}{{ max_price }}</span>
           {% endif %}
         </div>
       </div>
@@ -255,11 +259,11 @@
 
 {% block scripts %}
 <script>
-  // ── Price Filter Panel Toggle ──────────────────────────
   (function () {
-    const toggle  = document.getElementById('priceFilterToggle');
-    const panel   = document.getElementById('priceFilterPanel');
-    const arrow   = document.getElementById('priceFilterArrow');
+    // ── Panel toggle ───────────────────────────────────────
+    const toggle = document.getElementById('priceFilterToggle');
+    const panel  = document.getElementById('priceFilterPanel');
+    const arrow  = document.getElementById('priceFilterArrow');
 
     if (!toggle || !panel) return;
 
@@ -267,22 +271,42 @@
       panel.style.display = 'block';
       arrow.classList.add('open');
       toggle.setAttribute('aria-expanded', 'true');
+      updateFill(); // paint fill on open
     }
-
     function closePanel() {
       panel.style.display = 'none';
       arrow.classList.remove('open');
       toggle.setAttribute('aria-expanded', 'false');
     }
-
     toggle.addEventListener('click', function () {
       panel.style.display === 'none' ? openPanel() : closePanel();
     });
 
-    // Auto-open if a price filter is already applied
-    {% if min_price or max_price %}
+    // ── Slider logic ───────────────────────────────────────
+    const slider     = document.getElementById('priceSlider');
+    const hidden     = document.getElementById('maxPriceHidden');
+    const valueNum   = document.getElementById('sliderValueNum');
+
+    function updateFill() {
+      if (!slider) return;
+      const pct = ((slider.value - slider.min) / (slider.max - slider.min)) * 100;
+      // gradient: rose-gold fill on left, light track on right
+      slider.style.background =
+        `linear-gradient(to right, var(--clr-gold) 0%, var(--clr-gold) ${pct}%, var(--clr-border) ${pct}%, var(--clr-border) 100%)`;
+      if (valueNum) valueNum.textContent = Number(slider.value).toLocaleString('en-IN');
+      if (hidden)   hidden.value = slider.value;
+    }
+
+    if (slider) {
+      slider.addEventListener('input', updateFill);
+      updateFill(); // initial paint
+    }
+
+    // Auto-open if filter already applied
+    {% if max_price %}
     openPanel();
     {% endif %}
   })();
 </script>
 {% endblock %}
+
